@@ -8,6 +8,7 @@ import CRM from './pages/CRM'
 import Finance from './pages/Finance'
 import Staff from './pages/Staff'
 import Login from './pages/Login'
+import Settings from './pages/Settings'
 import './index.css'
 
 export default function App() {
@@ -46,13 +47,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => db.auth.signOut().then(() => { window.location.href = 'https://vidhyasaas.vercel.app/dashboard'; })} />}>
+        <Route path="/" element={<Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => db.auth.signOut().then(() => { window.location.href = 'https://vidhyasaas-dashboard.netlify.app'; })} />}>
           <Route index element={<Navigate to="/dashboard" />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="students" element={<Students />} />
           <Route path="crm" element={<CRM />} />
           <Route path="finance" element={<Finance />} />
           <Route path="staff" element={<Staff />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>

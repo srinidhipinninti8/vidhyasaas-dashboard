@@ -6,6 +6,7 @@ const navItems = [
   { to: '/crm',       label: 'CRM / Leads', icon: '📈' },
   { to: '/finance', label: 'Finance', icon: '💳' },
 { to: '/staff',   label: 'Staff / HR', icon: '🏢' },
+{ to: '/settings', label: 'Settings', icon: '⚙️' },
 ]
 
 export default function Layout({ theme, toggleTheme, user, onLogout }) {
