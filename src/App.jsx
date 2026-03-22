@@ -54,7 +54,7 @@ export default function App() {
           <Route path="crm" element={<CRM />} />
           <Route path="finance" element={<Finance />} />
           <Route path="staff" element={<Staff />} />
-          <Route path="settings" element={<Settings />} />
+          <Route path="settings" element={<Settings onUpdate={setUser} />} />
         </Route>
       </Routes>
     </BrowserRouter>

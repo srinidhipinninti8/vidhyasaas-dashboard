@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { db } from '../supabase'
 
-export default function Settings() {
+export default function Settings({ onUpdate }) {
   const [schoolName, setSchoolName] = useState('')
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -15,19 +15,18 @@ export default function Settings() {
   async function handleSave() {
     setSaving(true)
     setSuccess(false)
-    await db.auth.updateUser({ data: { school_name: schoolName } })
+    const { data } = await db.auth.updateUser({ data: { school_name: schoolName } })
+    if (data?.user) onUpdate(data.user)
     setSaving(false)
     setSuccess(true)
-    setTimeout(() => window.location.reload(), 1000)
+    setTimeout(() => setSuccess(false), 3000)
   }
 
   return (
     <div style={{ maxWidth: '480px' }}>
       <div style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text)', marginBottom: '24px' }}>Settings</div>
-
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
         <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text)', marginBottom: '16px' }}>School Information</div>
-
         <div style={{ marginBottom: '16px' }}>
           <label style={{ fontSize: '12px', color: 'var(--text3)', display: 'block', marginBottom: '6px' }}>School name</label>
           <input
@@ -42,7 +41,6 @@ export default function Settings() {
             }}
           />
         </div>
-
         <button
           onClick={handleSave}
           disabled={saving}
@@ -55,7 +53,6 @@ export default function Settings() {
         >
           {saving ? 'Saving...' : 'Save changes'}
         </button>
-
         {success && (
           <span style={{ marginLeft: '12px', fontSize: '12px', color: 'var(--green-text)' }}>
             ✓ Saved successfully!
