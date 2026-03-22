@@ -1,0 +1,33 @@
+:root {
+  --bg: #f5f4f0; --surface: #ffffff; --surface2: #f9f8f5;
+  --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.14);
+  --text: #1a1916; --text2: #6b6960; --text3: #9b9a95;
+  --accent: #2563eb; --accent-bg: #eff6ff; --accent-text: #1d4ed8;
+  --green: #16a34a; --green-bg: #f0fdf4; --green-text: #15803d;
+  --amber: #d97706; --amber-bg: #fffbeb; --amber-text: #b45309;
+  --red: #dc2626; --red-bg: #fef2f2; --red-text: #b91c1c;
+  --radius: 12px; --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+[data-theme="dark"] {
+  --bg: #0f0f0e; --surface: #1a1917; --surface2: #222220;
+  --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+  --text: #f0ede6; --text2: #9b9a95; --text3: #6b6960;
+  --accent: #3b82f6; --accent-bg: #1e2a45; --accent-text: #93c5fd;
+  --green: #22c55e; --green-bg: #0f2a1a; --green-text: #86efac;
+  --amber: #f59e0b; --amber-bg: #2a1f0a; --amber-text: #fcd34d;
+  --red: #ef4444; --red-bg: #2a0f0f; --red-text: #fca5a5;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  transition: background .25s, color .25s;
+}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
