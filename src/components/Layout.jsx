@@ -1,15 +1,31 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Outlet, NavLink } from 'react-router-dom'
+import { db } from '../supabase'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: '⬛' },
   { to: '/students',  label: 'Students',  icon: '👥' },
   { to: '/crm',       label: 'CRM / Leads', icon: '📈' },
-  { to: '/finance', label: 'Finance', icon: '💳' },
-{ to: '/staff',   label: 'Staff / HR', icon: '🏢' },
-{ to: '/settings', label: 'Settings', icon: '⚙️' },
+  { to: '/finance',   label: 'Finance', icon: '💳' },
+  { to: '/staff',     label: 'Staff / HR', icon: '🏢' },
+  { to: '/settings',  label: 'Settings', icon: '⚙️' },
 ]
 
 export default function Layout({ theme, toggleTheme, user, onLogout }) {
+  const [schoolName, setSchoolName] = useState('Demo School')
+
+  useEffect(() => {
+    db.auth.getUser().then(({ data }) => {
+      setSchoolName(data.user?.user_metadata?.school_name || 'Demo School')
+    })
+    const { data: listener } = db.auth.onAuthStateChange((_event, session) => {
+      if (session?.user?.user_metadata?.school_name) {
+        setSchoolName(session.user.user_metadata.school_name)
+      }
+    })
+    return () => listener.subscription.unsubscribe()
+  }, [])
+
   return (
     <div style={{ display:'flex', height:'100vh' }}>
 
@@ -50,10 +66,8 @@ export default function Layout({ theme, toggleTheme, user, onLogout }) {
               fontSize:'10px', fontWeight:600
             }}>SA</div>
             <div>
-              <div style={{ fontSize:'12px', fontWeight:500, color:'var(--text)' }}>Admin</div>
-              <div style={{ fontSize:'11px', color:'var(--text3)' }}><div style={{ fontSize:'12px', fontWeight:500, color:'var(--text)' }}>{user?.email?.split('@')[0] || 'Admin'}</div>
-<div style={{ fontSize:'11px', cursor:'pointer', color:'var(--red-text)' }} onClick={onLogout}>Sign out</div>
-... </div>
+              <div style={{ fontSize:'12px', fontWeight:500, color:'var(--text)' }}>{user?.email?.split('@')[0] || 'Admin'}</div>
+              <div style={{ fontSize:'11px', cursor:'pointer', color:'var(--red-text)' }} onClick={onLogout}>Sign out</div>
             </div>
           </div>
         </div>
@@ -75,7 +89,7 @@ export default function Layout({ theme, toggleTheme, user, onLogout }) {
             fontSize:'11px', fontFamily:'var(--mono)',
             background:'var(--green-bg)', color:'var(--green-text)',
             padding:'3px 9px', borderRadius:'20px'
-          }}>Demo School</span>
+          }}>{schoolName}</span>
           <div style={{ display:'flex', alignItems:'center', gap:'5px', fontSize:'11px', color:'var(--text3)' }}>
             <span>☀️</span>
             <button onClick={toggleTheme} style={{
