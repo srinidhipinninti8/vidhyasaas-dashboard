@@ -18,7 +18,7 @@ export default function Settings() {
     await db.auth.updateUser({ data: { school_name: schoolName } })
     setSaving(false)
     setSuccess(true)
-    setTimeout(() => setSuccess(false), 3000)
+    setTimeout(() => window.location.reload(), 1000)
   }
 
   return (
