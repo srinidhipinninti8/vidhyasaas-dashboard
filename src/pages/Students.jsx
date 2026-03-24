@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { db, SCHEMA } from '../supabase'
+import { db} from '../supabase'
 
 function Toast({ msg, color }) {
   return msg ? (
@@ -12,7 +12,7 @@ function Toast({ msg, color }) {
   ) : null
 }
 
-export default function Students() {
+export default function Students({ schema }) {
   const [students, setStudents] = useState([])
   const [filtered, setFiltered] = useState([])
   const [search, setSearch] = useState('')
@@ -30,7 +30,7 @@ export default function Students() {
      guardian_name:'', guardian_phone:'', guardian_email:''
   })
 
-  useEffect(() => { loadStudents() }, [])
+  useEffect(() => { if(schema) loadStudents() }, [schema])
 
   useEffect(() => {
     let data = students
@@ -48,7 +48,7 @@ export default function Students() {
   }
 
   async function loadStudents() {
-    const { data } = await db.schema(SCHEMA).from('students').select('*').order('created_at', { ascending: false })
+    const { data } = await db.schema(schema).from('students').select('*').order('created_at', { ascending: false })
     setStudents(data || [])
   }
 
@@ -56,7 +56,7 @@ export default function Students() {
     if (!form.first_name || !form.last_name || !form.guardian_phone) {
       showToast('Please fill First name, Last name and Phone', '#d97706'); return
     }
-    const { error } = await db.schema(SCHEMA).from('students').insert({
+    const { error } = await db.schema(schema).from('students').insert({
       ...form,
       first_name: form.first_name,
       last_name: form.last_name,
@@ -102,7 +102,7 @@ export default function Students() {
     let success = 0, failed = 0
     for (let i = 0; i < data.length; i++) {
       const row = data[i]
-      const { error } = await db.schema(SCHEMA).from('students').insert({
+      const { error } = await db.schema(schema).from('students').insert({
         admission_no: row.admission_no || 'ADM' + Date.now() + i,
         first_name: row.first_name || '',
         last_name: row.last_name || '',

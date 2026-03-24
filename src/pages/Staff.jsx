@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { db, SCHEMA } from '../supabase'
+import { db } from '../supabase'
 
 function Toast({ msg, color }) {
   return msg ? (
@@ -12,7 +12,7 @@ function Toast({ msg, color }) {
   ) : null
 }
 
-export default function Staff() {
+export default function Staff({ schema }) {
   const [staff, setStaff] = useState([])
   const [filtered, setFiltered] = useState([])
   const [search, setSearch] = useState('')
@@ -24,7 +24,7 @@ export default function Staff() {
     role:'teacher', department:'', salary:''
   })
 
-  useEffect(() => { loadStaff() }, [])
+  useEffect(() => { if (schema) loadStaff() }, [schema])
 
   useEffect(() => {
     if (!search) { setFiltered(staff); return }
@@ -39,7 +39,7 @@ export default function Staff() {
   }
 
   async function loadStaff() {
-    const { data, error } = await db.schema(SCHEMA).from('staff').select('*').order('created_at', { ascending: false })
+    const { data, error } = await db.schema(schema).from('staff').select('*').order('created_at', { ascending: false })
     if (error) { console.error(error); return }
     setStaff(data || [])
     setFiltered(data || [])
@@ -49,7 +49,7 @@ export default function Staff() {
     if (!form.first_name || !form.last_name) {
       showToast('First and last name required', '#d97706'); return
     }
-    const { error } = await db.schema(SCHEMA).from('staff').insert({
+    const { error } = await db.schema(schema).from('staff').insert({
       employee_id: 'EMP' + Date.now(),
       first_name: form.first_name,
       last_name: form.last_name,
@@ -121,12 +121,8 @@ export default function Staff() {
             placeholder="Search by name, role, department..."
             style={{ padding:'7px 11px', fontSize:'12.5px', border:'1px solid var(--border2)', borderRadius:'8px', background:'var(--surface2)', color:'var(--text)', outline:'none', width:'240px' }}
           />
-          <button onClick={exportCSV} style={{ padding:'7px 12px', fontSize:'12px', background:'var(--surface2)', border:'1px solid var(--border2)', borderRadius:'8px', cursor:'pointer', color:'var(--text2)' }}>
-            Export CSV
-          </button>
-          <button onClick={() => setShowForm(true)} style={{ padding:'7px 12px', fontSize:'12px', background:'var(--accent-bg)', color:'var(--accent-text)', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:500 }}>
-            + Add staff
-          </button>
+          <button onClick={exportCSV} style={{ padding:'7px 12px', fontSize:'12px', background:'var(--surface2)', border:'1px solid var(--border2)', borderRadius:'8px', cursor:'pointer', color:'var(--text2)' }}>Export CSV</button>
+          <button onClick={() => setShowForm(true)} style={{ padding:'7px 12px', fontSize:'12px', background:'var(--accent-bg)', color:'var(--accent-text)', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:500 }}>+ Add staff</button>
         </div>
         <div style={{ overflowX:'auto' }}>
           <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'12.5px' }}>
@@ -139,9 +135,7 @@ export default function Staff() {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={8} style={{ padding:'24px', textAlign:'center', color:'var(--text3)' }}>
-                  No staff added yet. Click + Add staff to begin.
-                </td></tr>
+                <tr><td colSpan={8} style={{ padding:'24px', textAlign:'center', color:'var(--text3)' }}>No staff added yet. Click + Add staff to begin.</td></tr>
               ) : filtered.map(s => (
                 <tr key={s.id} style={{ borderBottom:'1px solid var(--border)' }}>
                   <td style={{ padding:'10px 14px', fontFamily:'var(--mono)', fontSize:'11.5px', color:'var(--text3)' }}>{s.employee_id}</td>

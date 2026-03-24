@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { db, SCHEMA } from '../supabase'
+import { db } from '../supabase'
 
 function Toast({ msg, color }) {
   return msg ? (
@@ -12,7 +12,7 @@ function Toast({ msg, color }) {
   ) : null
 }
 
-export default function Finance() {
+export default function Finance({ schema }) {
   const [payments, setPayments] = useState([])
   const [toast, setToast] = useState({ msg:'', color:'' })
   const [form, setForm] = useState({
@@ -20,7 +20,7 @@ export default function Finance() {
     discount:'0', payment_mode:'UPI', transaction_id:''
   })
 
-  useEffect(() => { loadPayments() }, [])
+  useEffect(() => { if (schema) loadPayments() }, [schema])
 
   function showToast(msg, color) {
     setToast({ msg, color })
@@ -28,7 +28,7 @@ export default function Finance() {
   }
 
   async function loadPayments() {
-    const { data } = await db.schema(SCHEMA).from('fee_payments').select('*').order('created_at', { ascending: false })
+    const { data } = await db.schema(schema).from('fee_payments').select('*').order('created_at', { ascending: false })
     setPayments(data || [])
   }
 
@@ -40,7 +40,7 @@ export default function Finance() {
     const discount = parseFloat(form.discount) || 0
     const paid = amount - discount
     const receiptNo = 'RCP' + Date.now()
-    const { error } = await db.schema(SCHEMA).from('fee_payments').insert({
+    const { error } = await db.schema(schema).from('fee_payments').insert({
       amount, discount, paid_amount: paid, balance: 0,
       payment_mode: form.payment_mode.toLowerCase(),
       transaction_id: form.transaction_id || null,

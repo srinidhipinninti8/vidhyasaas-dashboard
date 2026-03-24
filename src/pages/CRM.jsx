@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { db, SCHEMA } from '../supabase'
+import { db } from '../supabase'
 
 function Toast({ msg, color }) {
   return msg ? (
@@ -21,7 +21,7 @@ const STAGE_COLORS = {
   lost:     { bg:'#fef2f2', text:'#b91c1c' },
 }
 
-export default function CRM() {
+export default function CRM({ schema }) {
   const [leads, setLeads] = useState([])
   const [toast, setToast] = useState({ msg:'', color:'' })
   const [showForm, setShowForm] = useState(false)
@@ -34,7 +34,7 @@ export default function CRM() {
     interested_class:'', source:'walk_in', follow_up_date:'', notes:''
   })
 
-  useEffect(() => { loadLeads() }, [])
+  useEffect(() => { if (schema) loadLeads() }, [schema])
 
   function showToast(msg, color) {
     setToast({ msg, color })
@@ -42,7 +42,7 @@ export default function CRM() {
   }
 
   async function loadLeads() {
-    const { data, error } = await db.schema(SCHEMA).from('leads').select('*').order('created_at', { ascending: false })
+    const { data, error } = await db.schema(schema).from('leads').select('*').order('created_at', { ascending: false })
     if (error) { console.error('Load leads error:', error); return }
     setLeads(data || [])
   }
@@ -52,7 +52,7 @@ export default function CRM() {
       showToast('Parent name and phone required', '#d97706')
       return
     }
-    const { error } = await db.schema(SCHEMA).from('leads').insert({
+    const { error } = await db.schema(schema).from('leads').insert({
       parent_name: form.parent_name,
       parent_phone: form.parent_phone,
       student_name: form.student_name || null,
@@ -70,7 +70,7 @@ export default function CRM() {
   }
 
   async function moveStage(id, stage) {
-    const { error } = await db.schema(SCHEMA).from('leads').update({ stage, updated_at: new Date().toISOString() }).eq('id', id)
+    const { error } = await db.schema(schema).from('leads').update({ stage, updated_at: new Date().toISOString() }).eq('id', id)
     if (error) { showToast('Error moving lead', '#dc2626'); return }
     showToast('Moved to ' + stage + '!')
     loadLeads()
@@ -102,13 +102,8 @@ export default function CRM() {
         notes: row.notes || null,
         stage: 'inquiry'
       }
-      const { error } = await db.schema(SCHEMA).from('leads').insert(insertData)
-      if (error) {
-        console.error('Insert error:', error.message, insertData)
-        failed++
-      } else {
-        success++
-      }
+      const { error } = await db.schema(schema).from('leads').insert(insertData)
+      if (error) { console.error('Insert error:', error.message, insertData); failed++ } else { success++ }
     }
     setImporting(false)
     setImportResult(success + ' leads imported' + (failed ? ', ' + failed + ' failed' : ''))
@@ -165,16 +160,12 @@ export default function CRM() {
       <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'12px', padding:'13px 16px', marginBottom:'14px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
         <div style={{ fontSize:'13px', fontWeight:600, color:'var(--text)' }}>Admissions pipeline</div>
         <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
-          <button onClick={exportCSV} style={{ padding:'6px 12px', fontSize:'12px', background:'var(--surface2)', border:'1px solid var(--border2)', borderRadius:'6px', cursor:'pointer', color:'var(--text2)' }}>
-            Export CSV
-          </button>
+          <button onClick={exportCSV} style={{ padding:'6px 12px', fontSize:'12px', background:'var(--surface2)', border:'1px solid var(--border2)', borderRadius:'6px', cursor:'pointer', color:'var(--text2)' }}>Export CSV</button>
           <button onClick={() => fileRef.current.click()} disabled={importing} style={{ padding:'6px 12px', fontSize:'12px', background:'var(--surface2)', border:'1px solid var(--border2)', borderRadius:'6px', cursor:'pointer', color:'var(--text2)' }}>
             {importing ? 'Importing...' : 'Import CSV'}
           </button>
           <input ref={fileRef} type="file" accept=".csv" onChange={importLeads} style={{ display:'none' }} />
-          <button onClick={() => setShowForm(true)} style={{ padding:'6px 12px', fontSize:'12px', background:'var(--accent-bg)', color:'var(--accent-text)', border:'none', borderRadius:'6px', cursor:'pointer', fontWeight:500 }}>
-            + Add lead
-          </button>
+          <button onClick={() => setShowForm(true)} style={{ padding:'6px 12px', fontSize:'12px', background:'var(--accent-bg)', color:'var(--accent-text)', border:'none', borderRadius:'6px', cursor:'pointer', fontWeight:500 }}>+ Add lead</button>
         </div>
       </div>
 
@@ -282,7 +273,3 @@ export default function CRM() {
     </div>
   )
 }
-
-
-
-
