@@ -53,6 +53,18 @@ export default function App() {
     </div>
   )
 
+if (user && !schema) return (
+    <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
+      Error: No school assigned to your account. Contact support.
+    </div>
+  )
+
+if (user && !schema) return (
+    <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
+      Error: No school assigned to your account. Contact support.
+    </div>
+  )
+
   if (!user) return <Login onLogin={setUser} />
 
   return (
