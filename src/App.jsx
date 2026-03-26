@@ -33,6 +33,8 @@ export default function App() {
       if (sessionUser) {
         const s = await getUserSchema()
         setSchema(s)
+      } else {
+        setSchema(null)
       }
     })
     return () => listener.subscription.unsubscribe()
@@ -53,24 +55,18 @@ export default function App() {
     </div>
   )
 
-if (user && !schema) return (
-    <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
-      Error: No school assigned to your account. Contact support.
-    </div>
-  )
-
-if (user && !schema) return (
-    <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
-      Error: No school assigned to your account. Contact support.
-    </div>
-  )
-
   if (!user) return <Login onLogin={setUser} />
+
+  if (user && !schema) return (
+    <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
+      Error: No school assigned to your account. Contact support.
+    </div>
+  )
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => db.auth.signOut().then(() => { window.location.href = 'https://vidhyasaas-dashboard.netlify.app'; })} />}>
+        <Route path="/" element={<Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => db.auth.signOut().then(() => { setUser(null); setSchema(null); window.location.href = 'https://vidhyasaas-dashboard.vercel.app'; })} />}>
           <Route index element={<Navigate to="/dashboard" />} />
           <Route path="dashboard" element={<Dashboard schema={schema} />} />
           <Route path="students" element={<Students schema={schema} />} />
