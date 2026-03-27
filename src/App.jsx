@@ -18,8 +18,8 @@ export default function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Initialize Auth
     const initAuth = async () => {
+      setLoading(true) // Start loading state
       const { data } = await db.auth.getSession()
       const sessionUser = data.session?.user || null
       setUser(sessionUser)
@@ -28,12 +28,13 @@ export default function App() {
         const s = await getUserSchema()
         setSchema(s)
       }
-      setLoading(false)
+      setLoading(false) // Only stop when schema check is done
     }
 
     initAuth()
 
     const { data: listener } = db.auth.onAuthStateChange(async (_event, session) => {
+      setLoading(true) // Ensure loading screen shows during auth transition
       const sessionUser = session?.user || null
       setUser(sessionUser)
       
@@ -43,7 +44,7 @@ export default function App() {
       } else {
         setSchema(null)
       }
-      setLoading(false) // Ensure loading stops on auth change
+      setLoading(false) // Finish transition
     })
 
     return () => {
@@ -58,20 +59,21 @@ export default function App() {
     document.documentElement.dataset.theme = next
   }
 
-  // Effect to apply theme to HTML tag
   useEffect(() => {
     document.documentElement.dataset.theme = theme
   }, [theme])
 
+  // 1. Loading State (Highest Priority)
   if (loading) return (
     <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f8fafc', color:'#64748b', fontSize:'13px' }}>
       Loading VidhyaSaaS...
     </div>
   )
 
+  // 2. Unauthenticated State
   if (!user) return <Login onLogin={setUser} />
 
-  // If logged in but schema fetch failed, allow access to settings or show error
+  // 3. Authenticated but Data Missing (Prevents the "Flash" because of 'loading' check above)
   if (user && !schema) return (
     <div style={{ height:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'#f8fafc', color:'#64748b', gap:'10px' }}>
       <p>Error: No school assigned to your account.</p>
@@ -79,6 +81,7 @@ export default function App() {
     </div>
   )
 
+  // 4. Main Application
   return (
     <BrowserRouter>
       <Routes>
@@ -90,7 +93,6 @@ export default function App() {
             onLogout={() => db.auth.signOut().then(() => {
               setUser(null);
               setSchema(null);
-              // Simplified redirect to avoid external URL loops
               window.location.href = '/'; 
             })} 
           />
