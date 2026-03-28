@@ -14,36 +14,38 @@ import './index.css'
 export default function App() {
   const [theme, setTheme] = useState(localStorage.getItem('vs-theme') || 'light')
   const [user, setUser] = useState(null)
-  const [schema, setSchema] = useState('tenant_demo_school')
+  const [schema, setSchema] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Safety timeout — never stuck loading more than 5 seconds
-    const timeout = setTimeout(() => setLoading(false), 5000)
-
-    db.auth.getSession().then(async ({ data }) => {
-      const sessionUser = data.session?.user || null
-      setUser(sessionUser)
-      if (sessionUser) {
-        const s = await getUserSchema()
-        setSchema(s || 'tenant_demo_school')
+    async function init() {
+      try {
+        const { data } = await db.auth.getSession()
+        const sessionUser = data.session?.user || null
+        setUser(sessionUser)
+        if (sessionUser) {
+          const s = await getUserSchema()
+          setSchema(s)
+        }
+      } catch(e) {
+        console.error(e)
+      } finally {
+        setLoading(false)
       }
-      clearTimeout(timeout)
-      setLoading(false)
-    })
+    }
+    init()
 
     const { data: listener } = db.auth.onAuthStateChange(async (_event, session) => {
       const sessionUser = session?.user || null
       setUser(sessionUser)
       if (sessionUser) {
         const s = await getUserSchema()
-        setSchema(s || 'tenant_demo_school')
+        setSchema(s)
+      } else {
+        setSchema(null)
       }
     })
-    return () => {
-      listener.subscription.unsubscribe()
-      clearTimeout(timeout)
-    }
+    return () => listener.subscription.unsubscribe()
   }, [])
 
   const toggleTheme = () => {
@@ -61,12 +63,17 @@ export default function App() {
     </div>
   )
 
-  if (!user) return <Login onLogin={setUser} />
-if (!schema) return (
-  <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
-    Loading your school...
-  </div>
-)
+  if (!user) return <Login onLogin={async (u) => {
+    setUser(u)
+    const s = await getUserSchema()
+    setSchema(s)
+  }} />
+
+  if (!schema) return (
+    <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
+      Loading your school...
+    </div>
+  )
 
   return (
     <BrowserRouter>

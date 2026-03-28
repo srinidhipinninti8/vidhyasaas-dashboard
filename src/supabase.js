@@ -13,14 +13,12 @@ export async function getUserSchema() {
   try {
     const { data: { user } } = await db.auth.getUser()
     if (!user) return 'tenant_demo_school'
-
     const { data, error } = await db
       .schema('public')
       .from('profiles')
       .select('school_slug')
       .eq('id', user.id)
       .single()
-
     if (error || !data) return 'tenant_demo_school'
     return 'tenant_' + data.school_slug
   } catch (e) {
