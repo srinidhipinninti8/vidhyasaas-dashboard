@@ -67,7 +67,7 @@ if (!schema) return (
     Loading your school...
   </div>
 )
-...
+
   return (
     <BrowserRouter>
       <Routes>
