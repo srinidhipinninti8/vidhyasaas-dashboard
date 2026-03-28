@@ -1,50 +1,45 @@
-useEffect(() => {
-    const initAuth = async () => {
-      setLoading(true)
-      const { data } = await db.auth.getSession()
-      const sessionUser = data.session?.user || null
-      
-      // 👇 ADD THIS LOG
-      console.log("DEBUG: Initial User Check ->", sessionUser);
+// 1. Loading State (Highest Priority)
+  if (loading) return (
+    <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f8fafc', color:'#64748b', fontSize:'13px' }}>
+      Connecting to VidhyaSaaS...
+    </div>
+  )
 
-      setUser(sessionUser)
-      
-      if (sessionUser) {
-        const s = await getUserSchema()
-        
-        // 👇 ADD THIS LOG
-        console.log("DEBUG: Initial Schema Check ->", s);
-        
-        setSchema(s)
-      }
-      setLoading(false)
-    }
-
-    initAuth()
-
-    const { data: listener } = db.auth.onAuthStateChange(async (_event, session) => {
-      setLoading(true)
-      const sessionUser = session?.user || null
-      
-      // 👇 ADD THIS LOG
-      console.log("DEBUG: Auth State Changed. Event:", _event, "User:", sessionUser);
-
-      setUser(sessionUser)
-      
-      if (sessionUser) {
-        const s = await getUserSchema()
-        
-        // 👇 ADD THIS LOG
-        console.log("DEBUG: New Schema after change ->", s);
-        
-        setSchema(s)
-      } else {
-        setSchema(null)
-      }
-      setLoading(false)
-    })
-
-    return () => {
-      if (listener?.subscription) listener.subscription.unsubscribe()
-    }
-  }, [])
+  // 2. Main Application Router
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* If no user, show Login */}
+        {!user ? (
+          <Route path="*" element={<Login onLogin={(u) => {
+            console.log("Login triggered for:", u.email);
+            setUser(u);
+          }} />} />
+        ) : (
+          /* IF USER EXISTS, WE SHOW THE LAYOUT NO MATTER WHAT */
+          /* We provide a fallback 'tenant_demo_school' if schema is missing */
+          <Route path="/" element={
+            <Layout 
+              theme={theme} 
+              toggleTheme={toggleTheme} 
+              user={user} 
+              onLogout={() => db.auth.signOut().then(() => {
+                setUser(null);
+                setSchema(null);
+                window.location.href = '/'; 
+              })} 
+            />
+          }>
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard schema={schema || 'tenant_demo_school'} />} />
+            <Route path="students" element={<Students schema={schema || 'tenant_demo_school'} />} />
+            <Route path="crm" element={<CRM schema={schema || 'tenant_demo_school'} />} />
+            <Route path="finance" element={<Finance schema={schema || 'tenant_demo_school'} />} />
+            <Route path="staff" element={<Staff schema={schema || 'tenant_demo_school'} />} />
+            <Route path="settings" element={<Settings onUpdate={setUser} />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Route>
+        )}
+      </Routes>
+    </BrowserRouter>
+  )
