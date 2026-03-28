@@ -12,6 +12,13 @@ function Toast({ msg, color }) {
   ) : null
 }
 
+const SUBJECTS = [
+  'Mathematics','Science','English','Hindi','Social Studies',
+  'Physics','Chemistry','Biology','History','Geography',
+  'Computer Science','Physical Education','Arts','Music','Economics',
+  'Accountancy','Business Studies','Political Science','Sanskrit','Telugu'
+]
+
 export default function Staff({ schema }) {
   const [staff, setStaff] = useState([])
   const [filtered, setFiltered] = useState([])
@@ -21,7 +28,7 @@ export default function Staff({ schema }) {
   const [selected, setSelected] = useState(null)
   const [form, setForm] = useState({
     first_name:'', last_name:'', phone:'', email:'',
-    role:'teacher', department:'', salary:''
+    role:'teacher', department:'', salary:'', subjects:''
   })
 
   useEffect(() => { if (schema) loadStaff() }, [schema])
@@ -29,7 +36,7 @@ export default function Staff({ schema }) {
   useEffect(() => {
     if (!search) { setFiltered(staff); return }
     setFiltered(staff.filter(s =>
-      `${s.first_name} ${s.last_name} ${s.role} ${s.department}`.toLowerCase().includes(search.toLowerCase())
+      `${s.first_name} ${s.last_name} ${s.role} ${s.department} ${s.subjects || ''}`.toLowerCase().includes(search.toLowerCase())
     ))
   }, [search, staff])
 
@@ -58,20 +65,21 @@ export default function Staff({ schema }) {
       role: form.role,
       department: form.department || null,
       salary: parseFloat(form.salary) || 0,
+      subjects: form.subjects || null,
       status: 'active',
       join_date: new Date().toISOString().split('T')[0]
     })
     if (error) { showToast('Error: ' + error.message, '#dc2626'); return }
     showToast('Staff member added!')
-    setForm({ first_name:'', last_name:'', phone:'', email:'', role:'teacher', department:'', salary:'' })
+    setForm({ first_name:'', last_name:'', phone:'', email:'', role:'teacher', department:'', salary:'', subjects:'' })
     setShowForm(false)
     loadStaff()
   }
 
   function exportCSV() {
     if (!staff.length) { showToast('No staff to export', '#d97706'); return }
-    const headers = ['Employee ID','First Name','Last Name','Role','Department','Phone','Email','Salary','Status']
-    const rows = staff.map(s => [s.employee_id,s.first_name,s.last_name,s.role,s.department,s.phone,s.email,s.salary,s.status])
+    const headers = ['Employee ID','First Name','Last Name','Role','Department','Subjects','Phone','Email','Salary','Status']
+    const rows = staff.map(s => [s.employee_id,s.first_name,s.last_name,s.role,s.department,s.subjects,s.phone,s.email,s.salary,s.status])
     const csv = [headers,...rows].map(r => r.map(v => `"${v||''}"`).join(',')).join('\n')
     const a = document.createElement('a')
     a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv' }))
@@ -81,12 +89,8 @@ export default function Staff({ schema }) {
   }
 
   const totalPayroll = staff.reduce((s, r) => s + Number(r.salary || 0), 0)
-
   const inp = (id, placeholder, type='text') => (
-    <input
-      type={type}
-      placeholder={placeholder}
-      value={form[id]}
+    <input type={type} placeholder={placeholder} value={form[id]}
       onChange={e => setForm(f => ({ ...f, [id]: e.target.value }))}
       style={{ padding:'8px 11px', fontSize:'13px', border:'1px solid var(--border2)', borderRadius:'8px', background:'var(--surface2)', color:'var(--text)', outline:'none', width:'100%' }}
     />
@@ -95,8 +99,6 @@ export default function Staff({ schema }) {
   return (
     <div>
       <Toast msg={toast.msg} color={toast.color} />
-
-      {/* Metrics */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'12px', marginBottom:'16px' }}>
         {[
           { label:'Total staff', value: staff.length },
@@ -111,16 +113,11 @@ export default function Staff({ schema }) {
         ))}
       </div>
 
-      {/* Staff table */}
       <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'12px', overflow:'hidden' }}>
         <div style={{ padding:'13px 16px', borderBottom:'1px solid var(--border)', display:'flex', gap:'8px', alignItems:'center', flexWrap:'wrap' }}>
           <div style={{ fontSize:'13px', fontWeight:600, color:'var(--text)', flex:1 }}>Staff directory ({filtered.length})</div>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search by name, role, department..."
-            style={{ padding:'7px 11px', fontSize:'12.5px', border:'1px solid var(--border2)', borderRadius:'8px', background:'var(--surface2)', color:'var(--text)', outline:'none', width:'240px' }}
-          />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, role, subject..."
+            style={{ padding:'7px 11px', fontSize:'12.5px', border:'1px solid var(--border2)', borderRadius:'8px', background:'var(--surface2)', color:'var(--text)', outline:'none', width:'240px' }} />
           <button onClick={exportCSV} style={{ padding:'7px 12px', fontSize:'12px', background:'var(--surface2)', border:'1px solid var(--border2)', borderRadius:'8px', cursor:'pointer', color:'var(--text2)' }}>Export CSV</button>
           <button onClick={() => setShowForm(true)} style={{ padding:'7px 12px', fontSize:'12px', background:'var(--accent-bg)', color:'var(--accent-text)', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:500 }}>+ Add staff</button>
         </div>
@@ -128,20 +125,23 @@ export default function Staff({ schema }) {
           <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'12.5px' }}>
             <thead>
               <tr style={{ background:'var(--surface2)' }}>
-                {['Employee ID','Name','Role','Department','Phone','Salary','Status',''].map(h => (
+                {['Employee ID','Name','Role','Subject','Department','Phone','Salary','Status',''].map(h => (
                   <th key={h} style={{ textAlign:'left', padding:'9px 14px', fontSize:'11px', color:'var(--text3)', fontWeight:500, borderBottom:'1px solid var(--border)' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={8} style={{ padding:'24px', textAlign:'center', color:'var(--text3)' }}>No staff added yet. Click + Add staff to begin.</td></tr>
+                <tr><td colSpan={9} style={{ padding:'24px', textAlign:'center', color:'var(--text3)' }}>No staff added yet.</td></tr>
               ) : filtered.map(s => (
                 <tr key={s.id} style={{ borderBottom:'1px solid var(--border)' }}>
                   <td style={{ padding:'10px 14px', fontFamily:'var(--mono)', fontSize:'11.5px', color:'var(--text3)' }}>{s.employee_id}</td>
                   <td style={{ padding:'10px 14px', fontWeight:500, color:'var(--text)' }}>{s.first_name} {s.last_name}</td>
                   <td style={{ padding:'10px 14px' }}>
                     <span style={{ fontSize:'11px', padding:'2px 8px', borderRadius:'20px', background:'var(--accent-bg)', color:'var(--accent-text)', fontWeight:500, textTransform:'capitalize' }}>{s.role}</span>
+                  </td>
+                  <td style={{ padding:'10px 14px' }}>
+                    {s.subjects ? <span style={{ background:'var(--surface2)', border:'1px solid var(--border2)', padding:'2px 8px', borderRadius:'6px', fontSize:'11px', color:'var(--text2)' }}>{s.subjects}</span> : '--'}
                   </td>
                   <td style={{ padding:'10px 14px', color:'var(--text2)' }}>{s.department || '--'}</td>
                   <td style={{ padding:'10px 14px', color:'var(--text2)' }}>{s.phone || '--'}</td>
@@ -159,10 +159,9 @@ export default function Staff({ schema }) {
         </div>
       </div>
 
-      {/* Add staff modal */}
       {showForm && (
         <div onClick={() => setShowForm(false)} style={{ position:'fixed', top:0, left:0, width:'100%', height:'100%', background:'rgba(0,0,0,0.5)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background:'var(--surface)', borderRadius:'12px', padding:'22px', width:'440px', boxShadow:'0 20px 60px rgba(0,0,0,0.3)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background:'var(--surface)', borderRadius:'12px', padding:'22px', width:'460px', boxShadow:'0 20px 60px rgba(0,0,0,0.3)', maxHeight:'90vh', overflowY:'auto' }}>
             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'16px' }}>
               <div style={{ fontSize:'15px', fontWeight:600, color:'var(--text)' }}>Add staff member</div>
               <button onClick={() => setShowForm(false)} style={{ background:'none', border:'none', fontSize:'20px', cursor:'pointer', color:'var(--text2)' }}>x</button>
@@ -174,7 +173,8 @@ export default function Staff({ schema }) {
               <div><div style={{ fontSize:'11.5px', fontWeight:500, color:'var(--text2)', marginBottom:'4px' }}>Email</div>{inp('email','staff@school.in')}</div>
               <div>
                 <div style={{ fontSize:'11.5px', fontWeight:500, color:'var(--text2)', marginBottom:'4px' }}>Role</div>
-                <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} style={{ padding:'8px 11px', fontSize:'13px', border:'1px solid var(--border2)', borderRadius:'8px', background:'var(--surface2)', color:'var(--text)', width:'100%' }}>
+                <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+                  style={{ padding:'8px 11px', fontSize:'13px', border:'1px solid var(--border2)', borderRadius:'8px', background:'var(--surface2)', color:'var(--text)', width:'100%' }}>
                   <option value="teacher">Teacher</option>
                   <option value="hod">HOD</option>
                   <option value="principal">Principal</option>
@@ -185,6 +185,14 @@ export default function Staff({ schema }) {
                 </select>
               </div>
               <div><div style={{ fontSize:'11.5px', fontWeight:500, color:'var(--text2)', marginBottom:'4px' }}>Department</div>{inp('department','e.g. Mathematics')}</div>
+              <div style={{ gridColumn:'span 2' }}>
+                <div style={{ fontSize:'11.5px', fontWeight:500, color:'var(--text2)', marginBottom:'4px' }}>Subject taught</div>
+                <select value={form.subjects} onChange={e => setForm(f => ({ ...f, subjects: e.target.value }))}
+                  style={{ padding:'8px 11px', fontSize:'13px', border:'1px solid var(--border2)', borderRadius:'8px', background:'var(--surface2)', color:'var(--text)', width:'100%' }}>
+                  <option value=''>-- Select subject --</option>
+                  {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
               <div style={{ gridColumn:'span 2' }}><div style={{ fontSize:'11.5px', fontWeight:500, color:'var(--text2)', marginBottom:'4px' }}>Salary (₹)</div>{inp('salary','e.g. 35000','number')}</div>
             </div>
             <div style={{ display:'flex', gap:'8px', marginTop:'16px' }}>
@@ -195,7 +203,6 @@ export default function Staff({ schema }) {
         </div>
       )}
 
-      {/* View staff modal */}
       {selected && (
         <div onClick={() => setSelected(null)} style={{ position:'fixed', top:0, left:0, width:'100%', height:'100%', background:'rgba(0,0,0,0.5)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center' }}>
           <div onClick={e => e.stopPropagation()} style={{ background:'var(--surface)', borderRadius:'12px', padding:'22px', width:'400px', boxShadow:'0 20px 60px rgba(0,0,0,0.3)' }}>
@@ -208,6 +215,7 @@ export default function Staff({ schema }) {
                 ['Employee ID', selected.employee_id],
                 ['Name', `${selected.first_name} ${selected.last_name}`],
                 ['Role', selected.role],
+                ['Subject', selected.subjects],
                 ['Department', selected.department],
                 ['Phone', selected.phone],
                 ['Email', selected.email],

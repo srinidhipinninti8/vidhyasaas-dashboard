@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Students from './pages/Students'
 import CRM from './pages/CRM'
 import Finance from './pages/Finance'
+import Academics from './pages/Academics'
 import Staff from './pages/Staff'
 import Login from './pages/Login'
 import Settings from './pages/Settings'
@@ -90,6 +91,7 @@ export default function App() {
           <Route path="students" element={<Students schema={schema} />} />
           <Route path="crm" element={<CRM schema={schema} />} />
           <Route path="finance" element={<Finance schema={schema} />} />
+          <Route path="academics" element={<Academics schema={schema} />} />
           <Route path="staff" element={<Staff schema={schema} />} />
           <Route path="settings" element={<Settings onUpdate={setUser} />} />
         </Route>

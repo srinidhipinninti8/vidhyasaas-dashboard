@@ -3,10 +3,11 @@ import { Outlet, NavLink } from 'react-router-dom'
 import { db } from '../supabase'
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: '⬛' },
+  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
   { to: '/students',  label: 'Students',  icon: '👥' },
   { to: '/crm',       label: 'CRM / Leads', icon: '📈' },
   { to: '/finance',   label: 'Finance', icon: '💳' },
+  { to: '/academics', label: 'Academics', icon: '🎓' },
   { to: '/staff',     label: 'Staff / HR', icon: '🏢' },
   { to: '/settings',  label: 'Settings', icon: '⚙️' },
 ]
