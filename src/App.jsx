@@ -62,7 +62,12 @@ export default function App() {
   )
 
   if (!user) return <Login onLogin={setUser} />
-
+if (!schema) return (
+  <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
+    Loading your school...
+  </div>
+)
+...
   return (
     <BrowserRouter>
       <Routes>
