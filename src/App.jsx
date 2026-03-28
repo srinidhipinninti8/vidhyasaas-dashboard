@@ -19,7 +19,7 @@ export default function App() {
 
   useEffect(() => {
     const initAuth = async () => {
-      setLoading(true) // Start loading state
+      setLoading(true)
       const { data } = await db.auth.getSession()
       const sessionUser = data.session?.user || null
       setUser(sessionUser)
@@ -28,13 +28,13 @@ export default function App() {
         const s = await getUserSchema()
         setSchema(s)
       }
-      setLoading(false) // Only stop when schema check is done
+      setLoading(false)
     }
 
     initAuth()
 
     const { data: listener } = db.auth.onAuthStateChange(async (_event, session) => {
-      setLoading(true) // Ensure loading screen shows during auth transition
+      setLoading(true)
       const sessionUser = session?.user || null
       setUser(sessionUser)
       
@@ -44,7 +44,7 @@ export default function App() {
       } else {
         setSchema(null)
       }
-      setLoading(false) // Finish transition
+      setLoading(false)
     })
 
     return () => {
@@ -63,49 +63,52 @@ export default function App() {
     document.documentElement.dataset.theme = theme
   }, [theme])
 
-  // 1. Loading State (Highest Priority)
+  // 1. Loading State Guard
   if (loading) return (
     <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f8fafc', color:'#64748b', fontSize:'13px' }}>
       Loading VidhyaSaaS...
     </div>
   )
 
-  // 2. Unauthenticated State
-  if (!user) return <Login onLogin={setUser} />
-
-  // 3. Authenticated but Data Missing (Prevents the "Flash" because of 'loading' check above)
-  if (user && !schema) return (
-    <div style={{ height:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'#f8fafc', color:'#64748b', gap:'10px' }}>
-      <p>Error: No school assigned to your account.</p>
-      <button onClick={() => db.auth.signOut()} style={{ padding:'8px 16px', background:'#ef4444', color:'white', borderRadius:'6px' }}>Sign Out</button>
-    </div>
-  )
-
-  // 4. Main Application
+  // 2. Main Router Logic
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={
-          <Layout 
-            theme={theme} 
-            toggleTheme={toggleTheme} 
-            user={user} 
-            onLogout={() => db.auth.signOut().then(() => {
-              setUser(null);
-              setSchema(null);
-              window.location.href = '/'; 
-            })} 
-          />
-        }>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard schema={schema} />} />
-          <Route path="students" element={<Students schema={schema} />} />
-          <Route path="crm" element={<CRM schema={schema} />} />
-          <Route path="finance" element={<Finance schema={schema} />} />
-          <Route path="staff" element={<Staff schema={schema} />} />
-          <Route path="settings" element={<Settings onUpdate={setUser} />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Route>
+        {!user ? (
+          /* If no user, every path shows Login */
+          <Route path="*" element={<Login onLogin={setUser} />} />
+        ) : !schema ? (
+          /* If user exists but no school data, show error */
+          <Route path="*" element={
+            <div style={{ height:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'#f8fafc', color:'#64748b', gap:'10px' }}>
+              <p>Error: No school assigned to your account.</p>
+              <button onClick={() => db.auth.signOut()} style={{ padding:'8px 16px', background:'#ef4444', color:'white', borderRadius:'6px' }}>Sign Out</button>
+            </div>
+          } />
+        ) : (
+          /* Everything is good - show the App */
+          <Route path="/" element={
+            <Layout 
+              theme={theme} 
+              toggleTheme={toggleTheme} 
+              user={user} 
+              onLogout={() => db.auth.signOut().then(() => {
+                setUser(null);
+                setSchema(null);
+                window.location.href = '/'; 
+              })} 
+            />
+          }>
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard schema={schema} />} />
+            <Route path="students" element={<Students schema={schema} />} />
+            <Route path="crm" element={<CRM schema={schema} />} />
+            <Route path="finance" element={<Finance schema={schema} />} />
+            <Route path="staff" element={<Staff schema={schema} />} />
+            <Route path="settings" element={<Settings onUpdate={setUser} />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Route>
+        )}
       </Routes>
     </BrowserRouter>
   )
