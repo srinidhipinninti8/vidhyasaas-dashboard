@@ -9,6 +9,7 @@ import Finance from './pages/Finance'
 import Staff from './pages/Staff'
 import Login from './pages/Login'
 import Settings from './pages/Settings'
+import Landing from './pages/Landing'
 import './index.css'
 
 export default function App() {
@@ -63,23 +64,28 @@ export default function App() {
     </div>
   )
 
-  if (!user) return <Login onLogin={async (u) => {
-    setUser(u)
-    const s = await getUserSchema()
-    setSchema(s)
-  }} />
-
-  if (!schema) return (
-    <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
-      Loading your school...
-    </div>
-  )
-
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => db.auth.signOut().then(() => { window.location.href = 'https://vidhyasaas.vercel.app'; })} />}>
-          <Route index element={<Navigate to="/dashboard" />} />
+        {/* Landing page — public */}
+        <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Landing />} />
+
+        {/* Login page — redirect to dashboard if already logged in */}
+        <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login onLogin={async (u) => {
+          setUser(u)
+          const s = await getUserSchema()
+          setSchema(s)
+        }} />} />
+
+        {/* Protected dashboard routes */}
+        <Route path="/" element={
+          !user ? <Navigate to="/" /> :
+          !schema ? (
+            <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
+              Loading your school...
+            </div>
+          ) : <Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => db.auth.signOut().then(() => { window.location.href = '/'; })} />
+        }>
           <Route path="dashboard" element={<Dashboard schema={schema} />} />
           <Route path="students" element={<Students schema={schema} />} />
           <Route path="crm" element={<CRM schema={schema} />} />
