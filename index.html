@@ -1,121 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VidhyaSaaS — School Management Platform</title>
-<script>
-  // Redirect to dashboard immediately if a Supabase session exists
-  try {
-    const raw = localStorage.getItem('sb-skzfyflcmvzuzrmuwkpv-auth-token');
-    if (raw) {
-      const s = JSON.parse(raw);
-      if (s && s.access_token && s.expires_at > Math.floor(Date.now() / 1000)) {
-        window.location.replace('/dashboard');
-      }
-    }
-  } catch(e) {}
-</script>
-<style>
-  /* Reset & Professional Styling */
-  *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{font-family:system-ui,-apple-system,sans-serif;background:#fff;color:#111;line-height:1.5}
-  
-  .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:0.5px solid #e5e7eb;background:rgba(255,255,255,0.8);backdrop-filter:blur(8px);position:sticky;top:0;z-index:100}
-  .nav-logo{font-size:18px;font-weight:600;color:#111}
-  .nav-logo span{color:#2563eb}
-  .nav-links{display:flex;gap:24px;font-size:13px}
-  .nav-link{color:#6b7280;cursor:pointer;text-decoration:none;font-weight:500}
-  .nav-link:hover{color:#2563eb}
-
-  .btn-outline{padding:8px 16px;background:transparent;color:#2563eb;border:1.5px solid #2563eb;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
-  .btn-outline:hover{background:#eff6ff}
-  .btn-primary{padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
-  .btn-primary:hover{background:#1d4ed8}
-  .btn-lg{padding:12px 28px;font-size:15px}
-  .btn-outline-lg{padding:11px 24px;background:transparent;color:#2563eb;border:1.5px solid #2563eb;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer}
-
-  .hero{text-align:center;padding:80px 24px;background:linear-gradient(180deg,#f8faff 0%,#fff 100%)}
-  .hero-badge{display:inline-block;padding:5px 14px;background:#dbeafe;color:#1d4ed8;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:20px}
-  .hero h1{font-size:42px;font-weight:700;line-height:1.1;margin-bottom:16px;max-width:600px;margin:0 auto 16px}
-  .hero h1 span{color:#2563eb}
-  .hero-sub{font-size:16px;color:#4b5563;max-width:480px;margin:0 auto 32px}
-  .hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-
-  .section{padding:70px 24px}
-  .section-title{font-size:32px;font-weight:700;text-align:center;margin-bottom:48px}
-  .features-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:20px;max-width:1000px;margin:0 auto}
-  .feat-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px}
-  .feat-icon{font-size:28px;margin-bottom:16px;display:block}
-  .feat-title{font-size:18px;font-weight:600;margin-bottom:10px}
-  .feat-desc{font-size:14px;color:#6b7280}
-
-  .footer{padding:40px 24px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;font-size:13px;color:#9ca3af}
-
-  @media(max-width:600px){ .nav-links{display:none} .hero h1{font-size:32px} }
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VidyaSaaS | School Management</title>
+    <link rel="stylesheet" href="/src/index.css">
 </head>
 <body>
+    <div id="root"></div>
 
-<nav class="nav">
-  <div class="nav-logo">Vidhya<span>SaaS</span></div>
-  <div class="nav-links">
-    <a class="nav-link" href="#features">Features</a>
-    <a class="nav-link" href="#pricing">Pricing</a>
-  </div>
-    <div class="nav-actions">
-    <button class="btn-outline" onclick="window.location.href='/'">Sign in</button>
-    <button class="btn-primary" onclick="window.location.href='/'">Get started</button>
-  </div>
-</nav>
+    <script type="module" src="/src/main.jsx"></script>
 
-<section class="hero">
-  <div class="hero-badge">Next-Gen School Management</div>
-  <h1>Effortless school operations with <span>VidhyaSaaS</span></h1>
-  <p class="hero-sub">The all-in-one platform for student tracking, fee management, and AI-powered school analytics.</p>
-  <div class="hero-btns">
-    <button class="btn-primary btn-lg" onclick="goToDashboard()">Start Free Trial</button>
-    <button class="btn-outline-lg" onclick="goToDashboard()">View Dashboard</button>
-  </div>
-</section>
-
-<section class="section" id="features">
-  <h2 class="section-title">Designed for Modern Schools</h2>
-  <div class="features-grid">
-    <div class="feat-card">
-      <span class="feat-icon">🏫</span>
-      <div class="feat-title">Student Records</div>
-      <p class="feat-desc">Comprehensive database for attendance, grades, and behavioral tracking.</p>
-    </div>
-    <div class="feat-card">
-      <span class="feat-icon">💸</span>
-      <div class="feat-title">Smart Billing</div>
-      <p class="feat-desc">Automate fee collection, generate digital receipts, and track arrears.</p>
-    </div>
-    <div class="feat-card">
-      <span class="feat-icon">⚡</span>
-      <div class="feat-title">AI Insights</div>
-      <p class="feat-desc">Get instant answers about school performance using natural language queries.</p>
-    </div>
-  </div>
-</section>
-
-<footer class="footer">
-  <div>© 2026 VidhyaSaaS. All rights reserved.</div>
-  <div>Mumbai, India</div>
-</footer>
-
-  <script>
-  // Navigation function
-  function goToDashboard() {
-    // We change this to '/' so it stays on the main page where your React App lives
-    window.location.href = '/'; 
-  }
-</script>
-
-<div id="root"></div>
-<script type="module" src="/src/main.jsx"></script>
-
+    <script>
+      // This helper makes sure your buttons always point back to the React Brain
+      function goToDashboard() {
+        window.location.href = '/';
+      }
+    </script>
 </body>
 </html>
