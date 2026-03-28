@@ -5,71 +5,55 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VidhyaSaaS — School Management Platform</title>
 <script>
-// Logic to handle existing sessions - Redirects to /dashboard if logged in
-try {
-  const raw = localStorage.getItem('sb-skzfyflcmvzuzrmuwkpv-auth-token');
-  if (raw) {
-    const s = JSON.parse(raw);
-    if (s && s.access_token && s.expires_at > Math.floor(Date.now() / 1000)) {
-      window.location.replace('/dashboard');
+  // Redirect to dashboard immediately if a Supabase session exists
+  try {
+    const raw = localStorage.getItem('sb-skzfyflcmvzuzrmuwkpv-auth-token');
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s && s.access_token && s.expires_at > Math.floor(Date.now() / 1000)) {
+        window.location.replace('/dashboard');
+      }
     }
-  }
-} catch(e) {}
+  } catch(e) {}
 </script>
 <style>
-/* Reset and Base Styles */
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:system-ui,sans-serif;background:#fff;color:#111}
-.nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:0.5px solid #e5e7eb;background:#fff;position:sticky;top:0;z-index:100}
-.nav-logo{font-size:18px;font-weight:500;color:#111}
-.nav-logo span{color:#2563eb}
-.nav-links{display:flex;gap:24px;font-size:13px}
-.nav-link{color:#6b7280;cursor:pointer;text-decoration:none;padding:4px 0;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
-.nav-link:hover{color:#2563eb;border-bottom-color:#2563eb}
-.nav-actions{display:flex;gap:8px}
-.btn-outline{padding:7px 16px;background:transparent;color:#2563eb;border:1.5px solid #2563eb;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
-.btn-outline:hover{background:#eff6ff}
-.btn-primary{padding:7px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
-.btn-primary:hover{background:#1d4ed8}
-.btn-lg{padding:11px 26px;font-size:15px}
-.btn-outline-lg{padding:10px 22px;background:transparent;color:#2563eb;border:1.5px solid #2563eb;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:background .15s}
-.btn-outline-lg:hover{background:#eff6ff}
-.hero{text-align:center;padding:64px 24px 52px;background:linear-gradient(180deg,#eff6ff 0%,#fff 100%)}
-.hero-badge{display:inline-block;padding:4px 14px;background:#dbeafe;color:#1d4ed8;border-radius:20px;font-size:12px;font-weight:500;margin-bottom:18px}
-.hero h1{font-size:38px;font-weight:500;color:#111;line-height:1.2;margin-bottom:14px;max-width:540px;margin-left:auto;margin-right:auto}
-.hero h1 span{color:#2563eb}
-.hero-sub{font-size:15px;color:#6b7280;max-width:420px;margin:0 auto 30px;line-height:1.7}
-.hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.hero-stats{display:flex;justify-content:center;gap:36px;margin-top:40px;flex-wrap:wrap}
-.stat{text-align:center}
-.stat-val{font-size:22px;font-weight:500;color:#2563eb}
-.stat-label{font-size:12px;color:#9ca3af;margin-top:2px}
-.section{padding:56px 24px}
-.section-alt{background:#f9fafb}
-.section-label{font-size:11px;font-weight:600;color:#2563eb;text-transform:uppercase;letter-spacing:.1em;text-align:center;margin-bottom:8px}
-.section-title{font-size:28px;font-weight:500;text-align:center;color:#111;margin-bottom:8px}
-.section-sub{font-size:14px;color:#6b7280;text-align:center;margin-bottom:40px;max-width:480px;margin-left:auto;margin-right:auto}
-.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:820px;margin:0 auto}
-.feat-card{background:#fff;border:0.5px solid #e5e7eb;border-radius:12px;padding:20px;transition:box-shadow .2s}
-.feat-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.07)}
-.feat-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:13px}
-.feat-title{font-size:14px;font-weight:500;color:#111;margin-bottom:5px}
-.feat-desc{font-size:12.5px;color:#6b7280;line-height:1.6}
-.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:980px;margin:0 auto}
-.price-card{background:#fff;border:0.5px solid #e5e7eb;border-radius:12px;padding:22px;transition:box-shadow .2s}
-.price-card.popular{border:2px solid #2563eb;background:#eff6ff}
-.price-name{font-size:15px;font-weight:500;color:#111;margin-bottom:2px}
-.price-val{font-size:27px;font-weight:500;color:#111;margin-bottom:1px}
-.price-val span{font-size:13px;color:#6b7280;font-weight:400}
-.price-btn{width:100%;padding:9px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid #d1d5db;background:#f3f4f6;color:#111;transition:background .15s}
-.price-btn.primary{background:#2563eb;color:#fff;border:none}
-.cta-section{text-align:center;padding:56px 24px;background:#fff}
-.footer{padding:20px 24px;border-top:0.5px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#9ca3af;flex-wrap:wrap;gap:8px}
-@media(max-width:700px){
-  .features-grid,.pricing-grid{grid-template-columns:1fr}
-  .nav-links{display:none}
-}
+  /* Reset & Professional Styling */
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:system-ui,-apple-system,sans-serif;background:#fff;color:#111;line-height:1.5}
+  
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:0.5px solid #e5e7eb;background:rgba(255,255,255,0.8);backdrop-filter:blur(8px);position:sticky;top:0;z-index:100}
+  .nav-logo{font-size:18px;font-weight:600;color:#111}
+  .nav-logo span{color:#2563eb}
+  .nav-links{display:flex;gap:24px;font-size:13px}
+  .nav-link{color:#6b7280;cursor:pointer;text-decoration:none;font-weight:500}
+  .nav-link:hover{color:#2563eb}
+
+  .btn-outline{padding:8px 16px;background:transparent;color:#2563eb;border:1.5px solid #2563eb;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+  .btn-outline:hover{background:#eff6ff}
+  .btn-primary{padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn-primary:hover{background:#1d4ed8}
+  .btn-lg{padding:12px 28px;font-size:15px}
+  .btn-outline-lg{padding:11px 24px;background:transparent;color:#2563eb;border:1.5px solid #2563eb;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer}
+
+  .hero{text-align:center;padding:80px 24px;background:linear-gradient(180deg,#f8faff 0%,#fff 100%)}
+  .hero-badge{display:inline-block;padding:5px 14px;background:#dbeafe;color:#1d4ed8;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:20px}
+  .hero h1{font-size:42px;font-weight:700;line-height:1.1;margin-bottom:16px;max-width:600px;margin:0 auto 16px}
+  .hero h1 span{color:#2563eb}
+  .hero-sub{font-size:16px;color:#4b5563;max-width:480px;margin:0 auto 32px}
+  .hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+  .section{padding:70px 24px}
+  .section-title{font-size:32px;font-weight:700;text-align:center;margin-bottom:48px}
+  .features-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:20px;max-width:1000px;margin:0 auto}
+  .feat-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px}
+  .feat-icon{font-size:28px;margin-bottom:16px;display:block}
+  .feat-title{font-size:18px;font-weight:600;margin-bottom:10px}
+  .feat-desc{font-size:14px;color:#6b7280}
+
+  .footer{padding:40px 24px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;font-size:13px;color:#9ca3af}
+
+  @media(max-width:600px){ .nav-links{display:none} .hero h1{font-size:32px} }
 </style>
 </head>
 <body>
@@ -81,69 +65,56 @@ body{font-family:system-ui,sans-serif;background:#fff;color:#111}
     <a class="nav-link" href="#pricing">Pricing</a>
   </div>
   <div class="nav-actions">
-    <button class="btn-outline" onclick="window.location.href='/dashboard'">Sign in</button>
-    <button class="btn-primary" onclick="window.location.href='/dashboard'">Get started free</button>
+    <button class="btn-outline" onclick="goToDashboard()">Sign in</button>
+    <button class="btn-primary" onclick="goToDashboard()">Get started</button>
   </div>
 </nav>
 
 <section class="hero">
-  <div class="hero-badge">Built for Indian schools</div>
-  <h1>Complete school management — <span>simplified</span></h1>
-  <p class="hero-sub">Students, fees, admissions, staff and AI insights — all in one platform. No technical knowledge required.</p>
+  <div class="hero-badge">Next-Gen School Management</div>
+  <h1>Effortless school operations with <span>VidhyaSaaS</span></h1>
+  <p class="hero-sub">The all-in-one platform for student tracking, fee management, and AI-powered school analytics.</p>
   <div class="hero-btns">
-    <button class="btn-primary btn-lg" onclick="window.location.href='/dashboard'">Start free 14-days trial</button>
-    <button class="btn-outline-lg" onclick="window.location.href='/dashboard'">Sign in to dashboard</button>
+    <button class="btn-primary btn-lg" onclick="goToDashboard()">Start Free Trial</button>
+    <button class="btn-outline-lg" onclick="goToDashboard()">View Dashboard</button>
   </div>
 </section>
 
 <section class="section" id="features">
-  <div class="section-label">Features</div>
-  <div class="section-title">Everything your school needs</div>
+  <h2 class="section-title">Designed for Modern Schools</h2>
   <div class="features-grid">
-    <div class="feat-card"><div class="feat-icon" style="background:#dbeafe">👥</div><div class="feat-title">Student management</div><div class="feat-desc">Enroll students, track attendance, and generate reports.</div></div>
-    <div class="feat-card"><div class="feat-icon" style="background:#f0fdf4">💳</div><div class="feat-title">Fee collection</div><div class="feat-desc">Record payments, generate receipts, and track overdue fees.</div></div>
-    <div class="feat-card"><div class="feat-icon" style="background:#ecfeff">🤖</div><div class="feat-title">AI assistant</div><div class="feat-desc">Ask questions about your school data in plain language.</div></div>
-  </div>
-</section>
-
-<section class="section section-alt" id="pricing">
-  <div class="section-label">Pricing</div>
-  <div class="section-title">Simple, transparent pricing</div>
-  <div class="pricing-grid">
-    <div class="price-card">
-      <div class="price-name">Starter</div>
-      <div class="price-val">₹1,999<span>/mo</span></div>
-      <button class="price-btn" onclick="window.location.href='/dashboard'">Get started</button>
+    <div class="feat-card">
+      <span class="feat-icon">🏫</span>
+      <div class="feat-title">Student Records</div>
+      <p class="feat-desc">Comprehensive database for attendance, grades, and behavioral tracking.</p>
     </div>
-    <div class="price-card popular">
-      <div class="price-name">Growth</div>
-      <div class="price-val">₹4,999<span>/mo</span></div>
-      <button class="price-btn primary" onclick="window.location.href='/dashboard'">Get started</button>
+    <div class="feat-card">
+      <span class="feat-icon">💸</span>
+      <div class="feat-title">Smart Billing</div>
+      <p class="feat-desc">Automate fee collection, generate digital receipts, and track arrears.</p>
     </div>
-    <div class="price-card">
-      <div class="price-name">Institution</div>
-      <div class="price-val">₹9,999<span>/mo</span></div>
-      <button class="price-btn" onclick="window.location.href='/dashboard'">Get started</button>
+    <div class="feat-card">
+      <span class="feat-icon">⚡</span>
+      <div class="feat-title">AI Insights</div>
+      <p class="feat-desc">Get instant answers about school performance using natural language queries.</p>
     </div>
   </div>
-</section>
-
-<section class="cta-section">
-  <h2>Ready to transform your school?</h2>
-  <button class="btn-primary btn-lg" onclick="window.location.href='/dashboard'">Start your free 14-day trial</button>
 </section>
 
 <footer class="footer">
-  <div>© 2026 VidhyaSaaS</div>
+  <div>© 2026 VidhyaSaaS. All rights reserved.</div>
   <div>Mumbai, India</div>
 </footer>
 
 <script>
-// UPDATED Logic for Vercel
-const DASHBOARD = '/dashboard';
-
-// Your existing Supabase Logic here if needed for the Modal
-// But since you are redirecting to /dashboard, the React App handles the rest.
+  // Navigation function
+  function goToDashboard() {
+    window.location.href = '/dashboard';
+  }
 </script>
+
+<div id="root"></div>
+<script type="module" src="/src/main.jsx"></script>
+
 </body>
 </html>
