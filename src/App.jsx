@@ -4,7 +4,6 @@ import { db } from './supabase'
 import Login from './components/Login'
 import Staff from './components/Staff'
 import Finance from './components/Finance'
-// Add any other imports you have here (Settings, Students, etc.)
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -12,7 +11,7 @@ export default function App() {
   const [schema, setSchema] = useState(null)
 
   useEffect(() => {
-    // This checks if someone is logged in
+    // Check for existing session
     db.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setUser(session.user)
@@ -21,6 +20,7 @@ export default function App() {
       setLoading(false)
     })
 
+    // Listen for login/logout
     const { data: { subscription } } = db.auth.onAuthStateChange((_event, session) => {
       if (session) {
         setUser(session.user)
@@ -34,29 +34,24 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // 1. Loading State
   if (loading) {
     return (
-      <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f8fafc', color:'#64748b', fontSize:'13px' }}>
+      <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f8fafc', color:'#64748b' }}>
         Connecting to VidhyaSaaS...
       </div>
     )
   }
 
-  // 2. Main Application logic
   return (
     <BrowserRouter>
       <Routes>
         {!user ? (
-          /* If no user, show Login */
           <Route path="*" element={<Login onLogin={(u) => setUser(u)} />} />
         ) : (
-          /* If user exists, show the Dashboard/Staff */
           <Route path="/">
             <Route index element={<Navigate to="/staff" replace />} />
             <Route path="staff" element={<Staff schema={schema} />} />
             <Route path="finance" element={<Finance schema={schema} />} />
-            {/* You can add more routes here later */}
             <Route path="*" element={<Navigate to="/staff" replace />} />
           </Route>
         )}
