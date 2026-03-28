@@ -1,40 +1,36 @@
 import React, { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { db } from './supabase'
 import Login from './components/Login'
 import Staff from './components/Staff'
 
 export default function App() {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Check if user is already logged in
     db.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    // 2. Watch for login/logout actions
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
     const { data: { subscription } } = db.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
-    return () => subscription.unsubscribe()
-  }, [])
-
-  if (loading) return <div style={{padding:'20px'}}>Loading VidyaSaaS...</div>
+  if (loading) return null;
 
   return (
     <BrowserRouter>
       <Routes>
-        {!user ? (
-          /* If NOT logged in, show the Login box */
-          <Route path="*" element={<Login onLogin={(u) => setUser(u)} />} />
-        ) : (
-          /* If logged in, show the Staff Dashboard */
-          <Route path="*" element={<Staff />} />
-        )}
+        {/* Route for the Login Page */}
+        <Route path="/login" element={!user ? <Login onLogin={(u) => setUser(u)} /> : <Navigate to="/dashboard" />} />
+        
+        {/* Route for the Staff Dashboard */}
+        <Route path="/dashboard" element={user ? <Staff /> : <Navigate to="/login" />} />
+        
+        {/* All other links stay on your index.html Landing Page */}
       </Routes>
     </BrowserRouter>
   )

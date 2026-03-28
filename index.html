@@ -3,18 +3,62 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VidyaSaaS | School Management</title>
+    <title>VidyaSaaS | Smart School Management</title>
+    <!-- We keep your CSS link here for global styles -->
     <link rel="stylesheet" href="/src/index.css">
+    <style>
+        /* Basic styling to make the 'Product' look good immediately */
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; color: #1a1a1a; }
+        .hero { padding: 80px 20px; text-align: center; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); }
+        .hero h1 { font-size: 3rem; margin-bottom: 20px; color: #2d3748; }
+        .hero p { font-size: 1.25rem; color: #4a5568; max-width: 600px; margin: 0 auto 30px; }
+        .btn-primary { 
+            background-color: #4c51bf; color: white; padding: 15px 30px; 
+            text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 1.1rem;
+            display: inline-block; transition: transform 0.2s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); background-color: #434190; }
+        .features { display: flex; justify-content: space-around; padding: 50px; flex-wrap: wrap; }
+        .feature-card { width: 250px; padding: 20px; text-align: center; }
+    </style>
 </head>
 <body>
+    <!-- 1. THE PRODUCT (Landing Page Content) -->
+    <header class="hero">
+        <h1>VidhyaSaaS</h1>
+        <p>The all-in-one platform to manage students, staff, and school operations with ease.</p>
+        
+        <!-- This button connects the 'Product' to the 'Function' -->
+        <a href="/login" class="btn-primary">Login to Dashboard</a>
+    </header>
+
+    <section class="features">
+        <div class="feature-card">
+            <h3>Staff Management</h3>
+            <p>Track attendance and performance effortlessly.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Student Tracking</h3>
+            <p>Complete 360-degree view of student progress.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Smart Analytics</h3>
+            <p>Data-driven insights for your school growth.</p>
+        </div>
+    </section>
+
+    <!-- 2. THE FUNCTION (React App Mount Point) -->
+    <!-- When you log in, React will inject the Dashboard into this 'root' div -->
     <div id="root"></div>
 
+    <!-- This loads your React 'Brain' -->
     <script type="module" src="/src/main.jsx"></script>
 
     <script>
-      // This helper makes sure your buttons always point back to the React Brain
+      // This ensures that if the user is already logged in, 
+      // clicking the logo or a link takes them back to the dashboard logic.
       function goToDashboard() {
-        window.location.href = '/';
+        window.location.href = '/dashboard';
       }
     </script>
 </body>
