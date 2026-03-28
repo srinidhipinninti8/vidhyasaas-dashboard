@@ -14,28 +14,36 @@ import './index.css'
 export default function App() {
   const [theme, setTheme] = useState(localStorage.getItem('vs-theme') || 'light')
   const [user, setUser] = useState(null)
-  const [schema, setSchema] = useState(null)
+  const [schema, setSchema] = useState('tenant_demo_school')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Safety timeout — never stuck loading more than 5 seconds
+    const timeout = setTimeout(() => setLoading(false), 5000)
+
     db.auth.getSession().then(async ({ data }) => {
       const sessionUser = data.session?.user || null
       setUser(sessionUser)
       if (sessionUser) {
         const s = await getUserSchema()
-        setSchema(s)
+        setSchema(s || 'tenant_demo_school')
       }
+      clearTimeout(timeout)
       setLoading(false)
     })
+
     const { data: listener } = db.auth.onAuthStateChange(async (_event, session) => {
       const sessionUser = session?.user || null
       setUser(sessionUser)
       if (sessionUser) {
         const s = await getUserSchema()
-        setSchema(s)
+        setSchema(s || 'tenant_demo_school')
       }
     })
-    return () => listener.subscription.unsubscribe()
+    return () => {
+      listener.subscription.unsubscribe()
+      clearTimeout(timeout)
+    }
   }, [])
 
   const toggleTheme = () => {
@@ -58,7 +66,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => db.auth.signOut().then(() => { window.location.href = 'https://vidhyasaas-dashboard.vercel.app'; })} />}>
+        <Route path="/" element={<Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => db.auth.signOut().then(() => { window.location.href = 'https://vidhyasaas.vercel.app'; })} />}>
           <Route index element={<Navigate to="/dashboard" />} />
           <Route path="dashboard" element={<Dashboard schema={schema} />} />
           <Route path="students" element={<Students schema={schema} />} />

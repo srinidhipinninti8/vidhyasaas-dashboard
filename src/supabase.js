@@ -1,42 +1,31 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Using Environment Variables for Security & Flexibility
-const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
-const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+const SUPA_URL = 'https://skzfyflcmvzuzrmuwkpv.supabase.co'
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNremZ5ZmxjbXZ6dXpybXV3a3B2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTc4OTMsImV4cCI6MjA4OTQ5Mzg5M30.TzZhxaJ4_V9SXN0Cmdd2td3OOQor_TVEr27T7hOD19w'
 
 export const db = createClient(SUPA_URL, SUPA_KEY, {
   auth: {
-    storageKey: 'sb-skzfyflcmvzuzrmuwkpv-auth-token',
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
+    storageKey: 'sb-skzfyflcmvzuzrmuwkpv-auth-token'
   }
 })
 
-// Optimized function to get the school schema
 export async function getUserSchema() {
   try {
-    // 1. Get the session (more reliable than getUser on initial load)
-    const { data: { session } } = await db.auth.getSession()
-    if (!session?.user) return null
+    const { data: { user } } = await db.auth.getUser()
+    if (!user) return 'tenant_demo_school'
 
-    // 2. Fetch the school slug from the profiles table
     const { data, error } = await db
-      .from('profiles') // Defaults to public schema
+      .schema('public')
+      .from('profiles')
       .select('school_slug')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single()
 
-    if (error || !data) {
-      console.error("Schema Fetch Error:", error)
-      return 'tenant_demo_school' // Fallback to your demo schema so the app doesn't break
-    }
-
-    return `tenant_${data.school_slug}`
-  } catch (err) {
+    if (error || !data) return 'tenant_demo_school'
+    return 'tenant_' + data.school_slug
+  } catch (e) {
     return 'tenant_demo_school'
   }
 }
 
-// Keeping this for your existing components
 export const SCHEMA = 'tenant_demo_school'
