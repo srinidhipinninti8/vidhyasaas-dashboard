@@ -13,12 +13,20 @@ export async function getUserSchema() {
   try {
     const { data: { user } } = await db.auth.getUser()
     if (!user) return 'tenant_demo_school'
-    const { data, error } = await db
+
+    // Hard 3 second timeout — never hang forever
+    const schemaPromise = db
       .schema('public')
       .from('profiles')
       .select('school_slug')
       .eq('id', user.id)
       .single()
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 3000)
+    )
+
+    const { data, error } = await Promise.race([schemaPromise, timeoutPromise])
     if (error || !data) return 'tenant_demo_school'
     return 'tenant_' + data.school_slug
   } catch (e) {
