@@ -27,7 +27,7 @@ export default function App() {
         setUser(sessionUser)
         if (sessionUser) {
           const s = await getUserSchema()
-          setSchema(s)
+          setSchema(s || 'tenant_demo_school')
         }
       } catch(e) {
         console.error(e)
@@ -42,7 +42,7 @@ export default function App() {
       setUser(sessionUser)
       if (sessionUser) {
         const s = await getUserSchema()
-        setSchema(s)
+        setSchema(s || 'tenant_demo_school')
       } else {
         setSchema(null)
       }
@@ -59,34 +59,33 @@ export default function App() {
 
   document.documentElement.dataset.theme = theme
 
-  if (loading) return (
+  const Loader = ({ msg }) => (
     <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
-      Loading...
+      {msg || 'Loading...'}
     </div>
   )
+
+  // Show loader while fetching session
+  if (loading) return <Loader />
+
+  // Show loader while fetching schema (user logged in but schema not ready yet)
+  if (user && !schema) return <Loader msg="Loading your school..." />
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Landing page — public */}
+        {/* Landing page */}
         <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Landing />} />
 
-        {/* Login page — redirect to dashboard if already logged in */}
+        {/* Login */}
         <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login onLogin={async (u) => {
           setUser(u)
           const s = await getUserSchema()
-          setSchema(s)
+          setSchema(s || 'tenant_demo_school')
         }} />} />
 
-        {/* Protected dashboard routes */}
-        <Route path="/" element={
-          !user ? <Navigate to="/" /> :
-          !schema ? (
-            <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
-              Loading your school...
-            </div>
-          ) : <Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => db.auth.signOut().then(() => { window.location.href = '/'; })} />
-        }>
+        {/* Protected routes */}
+        <Route path="/" element={user ? <Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => db.auth.signOut().then(() => { window.location.href = '/'; })} /> : <Navigate to="/" />}>
           <Route path="dashboard" element={<Dashboard schema={schema} />} />
           <Route path="students" element={<Students schema={schema} />} />
           <Route path="crm" element={<CRM schema={schema} />} />
