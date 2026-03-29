@@ -16,12 +16,11 @@ import './index.css'
 export default function App() {
   const [theme, setTheme] = useState(localStorage.getItem('vs-theme') || 'light')
   const [user, setUser] = useState(null)
-  const [schema, setSchema] = useState(null)
+  const [schema, setSchema] = useState('tenant_demo_school')
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    // Safety net — force ready after 5 seconds no matter what
-    const safety = setTimeout(() => setReady(true), 5000)
+    const safety = setTimeout(() => setReady(true), 6000)
 
     const { data: listener } = db.auth.onAuthStateChange(async (_event, session) => {
       const sessionUser = session?.user || null
@@ -30,7 +29,7 @@ export default function App() {
         const s = await getUserSchema()
         setSchema(s || 'tenant_demo_school')
       } else {
-        setSchema(null)
+        setSchema('tenant_demo_school')
       }
       clearTimeout(safety)
       setReady(true)
