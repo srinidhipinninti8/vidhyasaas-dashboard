@@ -17,25 +17,11 @@ export default function App() {
   const [theme, setTheme] = useState(localStorage.getItem('vs-theme') || 'light')
   const [user, setUser] = useState(null)
   const [schema, setSchema] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    async function init() {
-      try {
-        const { data } = await db.auth.getSession()
-        const sessionUser = data.session?.user || null
-        setUser(sessionUser)
-        if (sessionUser) {
-          const s = await getUserSchema()
-          setSchema(s || 'tenant_demo_school')
-        }
-      } catch(e) {
-        console.error(e)
-      } finally {
-        setLoading(false)
-      }
-    }
-    init()
+    // Safety net — force ready after 5 seconds no matter what
+    const safety = setTimeout(() => setReady(true), 5000)
 
     const { data: listener } = db.auth.onAuthStateChange(async (_event, session) => {
       const sessionUser = session?.user || null
@@ -46,8 +32,14 @@ export default function App() {
       } else {
         setSchema(null)
       }
+      clearTimeout(safety)
+      setReady(true)
     })
-    return () => listener.subscription.unsubscribe()
+
+    return () => {
+      listener.subscription.unsubscribe()
+      clearTimeout(safety)
+    }
   }, [])
 
   const toggleTheme = () => {
@@ -59,32 +51,21 @@ export default function App() {
 
   document.documentElement.dataset.theme = theme
 
-  const Loader = ({ msg }) => (
+  if (!ready) return (
     <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
-      {msg || 'Loading...'}
+      Loading...
     </div>
   )
-
-  // Show loader while fetching session
-  if (loading) return <Loader />
-
-  // Show loader while fetching schema (user logged in but schema not ready yet)
-  if (user && !schema) return <Loader msg="Loading your school..." />
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Landing page */}
         <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Landing />} />
-
-        {/* Login */}
         <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login onLogin={async (u) => {
           setUser(u)
           const s = await getUserSchema()
           setSchema(s || 'tenant_demo_school')
         }} />} />
-
-        {/* Protected routes */}
         <Route path="/" element={user ? <Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => db.auth.signOut().then(() => { window.location.href = '/'; })} /> : <Navigate to="/" />}>
           <Route path="dashboard" element={<Dashboard schema={schema} />} />
           <Route path="students" element={<Students schema={schema} />} />
