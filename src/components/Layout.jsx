@@ -3,7 +3,7 @@ import { Outlet, NavLink } from 'react-router-dom'
 import { db } from '../supabase'
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
+  { to: '/dashboard', label: 'Dashboard', icon: '⬛' },
   { to: '/students',  label: 'Students',  icon: '👥' },
   { to: '/crm',       label: 'CRM / Leads', icon: '📈' },
   { to: '/finance',   label: 'Finance', icon: '💳' },
@@ -37,7 +37,9 @@ export default function Layout({ theme, toggleTheme, user, onLogout }) {
         display: 'flex', flexDirection: 'column', flexShrink: 0
       }}>
         <div style={{ padding:'18px', borderBottom:'1px solid var(--border)' }}>
-          <div style={{ fontSize:'16px', fontWeight:600, color:'var(--text)' }}>VidyaSaaS</div>
+          <div style={{ fontSize:'16px', fontWeight:600, color:'var(--text)' }}>
+            Vidhya<span style={{ color:'#2563eb' }}>SaaS</span>
+          </div>
           <div style={{ fontSize:'11px', color:'var(--text3)', marginTop:'2px', fontFamily:'var(--mono)' }}>School Management</div>
         </div>
 
@@ -84,7 +86,7 @@ export default function Layout({ theme, toggleTheme, user, onLogout }) {
           display: 'flex', alignItems: 'center', gap: '12px'
         }}>
           <div style={{ flex:1, fontSize:'15px', fontWeight:600, color:'var(--text)' }}>
-            VidyaSaaS
+            Vidhya<span style={{ color:'#2563eb' }}>SaaS</span>
           </div>
           <span style={{
             fontSize:'11px', fontFamily:'var(--mono)',

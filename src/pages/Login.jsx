@@ -45,7 +45,7 @@ export default function Login({ onLogin }) {
         boxShadow:'0 20px 60px rgba(0,0,0,0.1)'
       }}>
         <div style={{ textAlign:'center', marginBottom:'28px' }}>
-          <div style={{ fontSize:'24px', fontWeight:700, color:'var(--text)' }}>VidyaSaaS</div>
+          <div style={{ fontSize:'24px', fontWeight:600, color:'var(--text)' }}>Vidhya<span style={{color:'#2563eb'}}>SaaS</span></div>
         </div>
 
         {error && <div style={{ color:'red', marginBottom:'10px', fontSize:'12px' }}>{error}</div>}
