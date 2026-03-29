@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { db, getUserSchema } from './supabase'
+import { db, getUserSchema, clearSchemaCache } from './supabase'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Students from './pages/Students'
@@ -16,11 +16,12 @@ import './index.css'
 export default function App() {
   const [theme, setTheme] = useState(localStorage.getItem('vs-theme') || 'light')
   const [user, setUser] = useState(null)
-  const [schema, setSchema] = useState('tenant_demo_school')
+  // Read schema from cache instantly — no waiting
+  const [schema, setSchema] = useState(localStorage.getItem('vs-schema') || 'tenant_demo_school')
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    const safety = setTimeout(() => setReady(true), 6000)
+    const safety = setTimeout(() => setReady(true), 5000)
 
     const { data: listener } = db.auth.onAuthStateChange(async (_event, session) => {
       const sessionUser = session?.user || null
@@ -29,6 +30,7 @@ export default function App() {
         const s = await getUserSchema()
         setSchema(s || 'tenant_demo_school')
       } else {
+        clearSchemaCache()
         setSchema('tenant_demo_school')
       }
       clearTimeout(safety)
@@ -65,7 +67,14 @@ export default function App() {
           const s = await getUserSchema()
           setSchema(s || 'tenant_demo_school')
         }} />} />
-        <Route path="/" element={user ? <Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => db.auth.signOut().then(() => { window.location.href = '/'; })} /> : <Navigate to="/" />}>
+        <Route path="/" element={user
+          ? <Layout theme={theme} toggleTheme={toggleTheme} user={user}
+              onLogout={() => {
+                clearSchemaCache()
+                db.auth.signOut().then(() => { window.location.href = '/' })
+              }} />
+          : <Navigate to="/" />
+        }>
           <Route path="dashboard" element={<Dashboard schema={schema} />} />
           <Route path="students" element={<Students schema={schema} />} />
           <Route path="crm" element={<CRM schema={schema} />} />

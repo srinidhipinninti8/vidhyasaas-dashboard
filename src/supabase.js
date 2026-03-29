@@ -11,27 +11,33 @@ export const db = createClient(SUPA_URL, SUPA_KEY, {
 
 export async function getUserSchema() {
   try {
+    // Check cache first — instant load on refresh
+    const cached = localStorage.getItem('vs-schema')
+    if (cached) return cached
+
     const { data: { user } } = await db.auth.getUser()
     if (!user) return 'tenant_demo_school'
 
-    // Hard 3 second timeout — never hang forever
-    const schemaPromise = db
+    const { data, error } = await db
       .schema('public')
       .from('profiles')
       .select('school_slug')
       .eq('id', user.id)
       .single()
 
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), 3000)
-    )
-
-    const { data, error } = await Promise.race([schemaPromise, timeoutPromise])
     if (error || !data) return 'tenant_demo_school'
-    return 'tenant_' + data.school_slug
+
+    const schema = 'tenant_' + data.school_slug
+    // Cache it for instant access on next refresh
+    localStorage.setItem('vs-schema', schema)
+    return schema
   } catch (e) {
-    return 'tenant_demo_school'
+    return localStorage.getItem('vs-schema') || 'tenant_demo_school'
   }
+}
+
+export function clearSchemaCache() {
+  localStorage.removeItem('vs-schema')
 }
 
 export const SCHEMA = 'tenant_demo_school'
