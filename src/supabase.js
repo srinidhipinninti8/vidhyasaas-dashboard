@@ -9,14 +9,14 @@ export const db = createClient(SUPA_URL, SUPA_KEY, {
   }
 })
 
+// Returns schema string if user is authorized, or null if not found
 export async function getUserSchema() {
   try {
-    // Check cache first — instant load on refresh
     const cached = localStorage.getItem('vs-schema')
     if (cached) return cached
 
     const { data: { user } } = await db.auth.getUser()
-    if (!user) return 'tenant_demo_school'
+    if (!user) return null
 
     const { data, error } = await db
       .schema('public')
@@ -25,14 +25,13 @@ export async function getUserSchema() {
       .eq('id', user.id)
       .single()
 
-    if (error || !data) return 'tenant_demo_school'
+    if (error || !data) return null // No profile = no access
 
     const schema = 'tenant_' + data.school_slug
-    // Cache it for instant access on next refresh
     localStorage.setItem('vs-schema', schema)
     return schema
   } catch (e) {
-    return localStorage.getItem('vs-schema') || 'tenant_demo_school'
+    return localStorage.getItem('vs-schema') || null
   }
 }
 
