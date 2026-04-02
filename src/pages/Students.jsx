@@ -347,7 +347,20 @@ export default function Students({ schema }) {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => { setSelected(null); setEditMode(false) }} style={{ marginTop:'16px', width:'100%', padding:'9px', background:'var(--accent-bg)', color:'var(--accent-text)', border:'none', borderRadius:'8px', cursor:'pointer', fontSize:'13px', fontWeight:500 }}>Close</button>
+                <div style={{ display:'flex', gap:'8px', marginTop:'16px' }}>
+  <button onClick={() => { setSelected(null); setEditMode(false) }} style={{ flex:1, padding:'9px', background:'var(--accent-bg)', color:'var(--accent-text)', border:'none', borderRadius:'8px', cursor:'pointer', fontSize:'13px', fontWeight:500 }}>Close</button>
+  <button onClick={async () => {
+    if (!window.confirm(`Delete ${selected.first_name} ${selected.last_name}? This cannot be undone.`)) return
+    const { error } = await db.schema(schema).from('students').delete().eq('id', selected.id)
+    if (error) { showToast('Error deleting student', '#dc2626'); return }
+    showToast('Student deleted!')
+    setSelected(null)
+    setEditMode(false)
+    loadStudents()
+  }} style={{ flex:1, padding:'9px', background:'#dc2626', color:'#fff', border:'none', borderRadius:'8px', cursor:'pointer', fontSize:'13px', fontWeight:500 }}>
+    Delete
+  </button>
+</div>
               </>
             )}
           </div>
