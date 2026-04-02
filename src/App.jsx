@@ -16,7 +16,7 @@ import './index.css'
 export default function App() {
   const [theme, setTheme] = useState(localStorage.getItem('vs-theme') || 'light')
   const [user, setUser] = useState(null)
-  const [schema, setSchema] = useState(localStorage.getItem('vs-schema') || null)
+  const [schema, setSchema] = useState(null)
   const [ready, setReady] = useState(false)
   const [accessDenied, setAccessDenied] = useState(false)
 
@@ -29,7 +29,6 @@ export default function App() {
       if (sessionUser) {
         const s = await getUserSchema()
         if (!s) {
-          // User logged in but has no profile — access denied
           setAccessDenied(true)
           setSchema(null)
         } else {
@@ -66,7 +65,6 @@ export default function App() {
     </div>
   )
 
-  // Access denied screen
   if (accessDenied) return (
     <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', flexDirection:'column', gap:'16px' }}>
       <div style={{ fontSize:'48px' }}>🚫</div>
@@ -95,6 +93,7 @@ export default function App() {
           if (!s) {
             setAccessDenied(true)
           } else {
+            setAccessDenied(false)
             setSchema(s)
           }
         }} />} />

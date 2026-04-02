@@ -9,14 +9,15 @@ export const db = createClient(SUPA_URL, SUPA_KEY, {
   }
 })
 
-// Returns schema string if user is authorized, or null if not found
 export async function getUserSchema() {
   try {
-    const cached = localStorage.getItem('vs-schema')
-    if (cached) return cached
-
     const { data: { user } } = await db.auth.getUser()
     if (!user) return null
+
+    // Cache is per user — key includes user ID
+    const cacheKey = `vs-schema-${user.id}`
+    const cached = localStorage.getItem(cacheKey)
+    if (cached) return cached
 
     const { data, error } = await db
       .schema('public')
@@ -25,18 +26,23 @@ export async function getUserSchema() {
       .eq('id', user.id)
       .single()
 
-    if (error || !data) return null // No profile = no access
+    if (error || !data) return null
 
     const schema = 'tenant_' + data.school_slug
-    localStorage.setItem('vs-schema', schema)
+    localStorage.setItem(cacheKey, schema)
     return schema
   } catch (e) {
-    return localStorage.getItem('vs-schema') || null
+    const { data: { user } } = await db.auth.getUser().catch(() => ({ data: { user: null } }))
+    if (!user) return null
+    return localStorage.getItem(`vs-schema-${user.id}`) || null
   }
 }
 
 export function clearSchemaCache() {
-  localStorage.removeItem('vs-schema')
+  // Clear all vs-schema keys
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith('vs-schema')) localStorage.removeItem(key)
+  })
 }
 
 export const SCHEMA = 'tenant_demo_school'
