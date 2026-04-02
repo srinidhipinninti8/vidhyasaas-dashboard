@@ -21,7 +21,7 @@ export default function App() {
   const [accessDenied, setAccessDenied] = useState(false)
 
   useEffect(() => {
-    const safety = setTimeout(() => setReady(true), 6000)
+    const safety = setTimeout(() => setReady(true), 8000)
 
     const { data: listener } = db.auth.onAuthStateChange(async (_event, session) => {
       const sessionUser = session?.user || null
@@ -59,6 +59,7 @@ export default function App() {
 
   document.documentElement.dataset.theme = theme
 
+  // Wait until auth state is resolved
   if (!ready) return (
     <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
       Loading...
@@ -70,7 +71,7 @@ export default function App() {
       <div style={{ fontSize:'48px' }}>🚫</div>
       <div style={{ fontSize:'18px', fontWeight:600, color:'var(--text)' }}>Access Denied</div>
       <div style={{ fontSize:'13px', color:'var(--text3)', textAlign:'center', maxWidth:'320px' }}>
-        Your account is not linked to any school. Please contact your administrator to get access.
+        Your account is not linked to any school. Please contact your administrator.
       </div>
       <button onClick={() => {
         clearSchemaCache()
@@ -86,32 +87,39 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Landing />} />
-        <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login onLogin={async (u) => {
-          setUser(u)
-          const s = await getUserSchema()
-          if (!s) {
-            setAccessDenied(true)
-          } else {
-            setAccessDenied(false)
-            setSchema(s)
-          }
-        }} />} />
-        <Route path="/" element={user && schema
-          ? <Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => {
+        {/* Public routes */}
+        <Route path="/" element={user && schema ? <Navigate to="/dashboard" /> : <Landing />} />
+        <Route path="/login" element={
+          user && schema ? <Navigate to="/dashboard" /> :
+          <Login onLogin={async (u) => {
+            setUser(u)
+            const s = await getUserSchema()
+            if (!s) {
+              setAccessDenied(true)
+            } else {
+              setAccessDenied(false)
+              setSchema(s)
+            }
+          }} />
+        } />
+
+        {/* Protected routes — only render when user AND schema are both ready */}
+        {user && schema && (
+          <Route path="/" element={
+            <Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => {
               clearSchemaCache()
               db.auth.signOut().then(() => { window.location.href = '/' })
             }} />
-          : <Navigate to="/" />
-        }>
-          <Route path="dashboard" element={<Dashboard schema={schema} />} />
-          <Route path="students" element={<Students schema={schema} />} />
-          <Route path="crm" element={<CRM schema={schema} />} />
-          <Route path="finance" element={<Finance schema={schema} />} />
-          <Route path="academics" element={<Academics schema={schema} />} />
-          <Route path="staff" element={<Staff schema={schema} />} />
-          <Route path="settings" element={<Settings onUpdate={setUser} />} />
-        </Route>
+          }>
+            <Route path="dashboard" element={<Dashboard schema={schema} />} />
+            <Route path="students" element={<Students schema={schema} />} />
+            <Route path="crm" element={<CRM schema={schema} />} />
+            <Route path="finance" element={<Finance schema={schema} />} />
+            <Route path="academics" element={<Academics schema={schema} />} />
+            <Route path="staff" element={<Staff schema={schema} />} />
+            <Route path="settings" element={<Settings onUpdate={setUser} />} />
+          </Route>
+        )}
       </Routes>
     </BrowserRouter>
   )
