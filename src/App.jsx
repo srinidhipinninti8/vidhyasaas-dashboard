@@ -1,55 +1,53 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { db, getUserSchema } from './supabase'
+import { db, getUserSchema, clearSchemaCache } from './supabase'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Students from './pages/Students'
 import CRM from './pages/CRM'
 import Finance from './pages/Finance'
+import Academics from './pages/Academics'
 import Staff from './pages/Staff'
 import Login from './pages/Login'
 import Settings from './pages/Settings'
+import Landing from './pages/Landing'
 import './index.css'
 
 export default function App() {
   const [theme, setTheme] = useState(localStorage.getItem('vs-theme') || 'light')
   const [user, setUser] = useState(null)
   const [schema, setSchema] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [ready, setReady] = useState(false)
+  const [accessDenied, setAccessDenied] = useState(false)
 
   useEffect(() => {
-    db.auth.getSession().then(async ({ data }) => {
-      const sessionUser = data.session?.user || null
-      setUser(sessionUser)
-      if (sessionUser) {
-        // Retry up to 3 times if schema fetch fails
-        let s = null
-        for (let i = 0; i < 3; i++) {
-          s = await getUserSchema()
-          if (s) break
-          await new Promise(r => setTimeout(r, 500))
-        }
-        setSchema(s)
-      }
-      setLoading(false)
-    })
+    const safety = setTimeout(() => setReady(true), 8000)
 
     const { data: listener } = db.auth.onAuthStateChange(async (_event, session) => {
       const sessionUser = session?.user || null
       setUser(sessionUser)
       if (sessionUser) {
-        let s = null
-        for (let i = 0; i < 3; i++) {
-          s = await getUserSchema()
-          if (s) break
-          await new Promise(r => setTimeout(r, 500))
+        const s = await getUserSchema()
+        if (!s) {
+          setAccessDenied(true)
+          setSchema(null)
+        } else {
+          setAccessDenied(false)
+          setSchema(s)
         }
-        setSchema(s)
       } else {
+        setAccessDenied(false)
         setSchema(null)
+        clearSchemaCache()
       }
+      clearTimeout(safety)
+      setReady(true)
     })
-    return () => listener.subscription.unsubscribe()
+
+    return () => {
+      listener.subscription.unsubscribe()
+      clearTimeout(safety)
+    }
   }, [])
 
   const toggleTheme = () => {
@@ -61,19 +59,26 @@ export default function App() {
 
   document.documentElement.dataset.theme = theme
 
-  if (loading) return (
+  // Wait until auth state is resolved
+  if (!ready) return (
     <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
       Loading...
     </div>
   )
 
-  if (!user) return <Login onLogin={setUser} />
-
-  if (user && !schema) return (
-    <div style={{ height:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px', gap:'12px' }}>
-      <div>Error: No school assigned to your account.</div>
-      <button onClick={() => db.auth.signOut().then(() => window.location.reload())}
-        style={{ padding:'8px 16px', background:'var(--accent-bg)', color:'var(--accent-text)', border:'none', borderRadius:'8px', cursor:'pointer', fontSize:'13px' }}>
+  if (accessDenied) return (
+    <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', flexDirection:'column', gap:'16px' }}>
+      <div style={{ fontSize:'48px' }}>🚫</div>
+      <div style={{ fontSize:'18px', fontWeight:600, color:'var(--text)' }}>Access Denied</div>
+      <div style={{ fontSize:'13px', color:'var(--text3)', textAlign:'center', maxWidth:'320px' }}>
+        Your account is not linked to any school. Please contact your administrator.
+      </div>
+      <button onClick={() => {
+        clearSchemaCache()
+        setAccessDenied(false)
+        setUser(null)
+        db.auth.signOut()
+      }} style={{ padding:'9px 20px', background:'#2563eb', color:'#fff', border:'none', borderRadius:'8px', fontSize:'13px', fontWeight:500, cursor:'pointer' }}>
         Sign out
       </button>
     </div>
@@ -82,15 +87,39 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => db.auth.signOut().then(() => { setUser(null); setSchema(null); window.location.href = 'https://vidhyasaas-dashboard.vercel.app'; })} />}>
-          <Route index element={<Navigate to="/dashboard" />} />
-          <Route path="dashboard" element={<Dashboard schema={schema} />} />
-          <Route path="students" element={<Students schema={schema} />} />
-          <Route path="crm" element={<CRM schema={schema} />} />
-          <Route path="finance" element={<Finance schema={schema} />} />
-          <Route path="staff" element={<Staff schema={schema} />} />
-          <Route path="settings" element={<Settings onUpdate={setUser} />} />
-        </Route>
+        {/* Public routes */}
+        <Route path="/" element={user && schema ? <Navigate to="/dashboard" /> : <Landing />} />
+        <Route path="/login" element={
+          user && schema ? <Navigate to="/dashboard" /> :
+          <Login onLogin={async (u) => {
+            setUser(u)
+            const s = await getUserSchema()
+            if (!s) {
+              setAccessDenied(true)
+            } else {
+              setAccessDenied(false)
+              setSchema(s)
+            }
+          }} />
+        } />
+
+        {/* Protected routes — only render when user AND schema are both ready */}
+        {user && schema && (
+          <Route path="/" element={
+            <Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => {
+              clearSchemaCache()
+              db.auth.signOut().then(() => { window.location.href = '/' })
+            }} />
+          }>
+            <Route path="dashboard" element={<Dashboard schema={schema} />} />
+            <Route path="students" element={<Students schema={schema} />} />
+            <Route path="crm" element={<CRM schema={schema} />} />
+            <Route path="finance" element={<Finance schema={schema} />} />
+            <Route path="academics" element={<Academics schema={schema} />} />
+            <Route path="staff" element={<Staff schema={schema} />} />
+            <Route path="settings" element={<Settings onUpdate={setUser} />} />
+          </Route>
+        )}
       </Routes>
     </BrowserRouter>
   )
