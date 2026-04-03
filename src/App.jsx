@@ -20,8 +20,21 @@ export default function App() {
   const [ready, setReady] = useState(false)
   const [accessDenied, setAccessDenied] = useState(false)
 
-  useEffect(() => {
-    const safety = setTimeout(() => setReady(true), 8000)
+ useEffect(() => {
+    const safety = setTimeout(() => setReady(true), 3000)
+
+    // Resolve immediately on refresh using existing session
+    db.auth.getSession().then(async ({ data }) => {
+      if (data.session?.user) {
+        const sessionUser = data.session.user
+        setUser(sessionUser)
+        const s = await getUserSchema()
+        if (!s) { setAccessDenied(true); setSchema(null) }
+        else { setAccessDenied(false); setSchema(s) }
+        clearTimeout(safety)
+        setReady(true)
+      }
+    })
 
     const { data: listener } = db.auth.onAuthStateChange(async (_event, session) => {
       const sessionUser = session?.user || null
