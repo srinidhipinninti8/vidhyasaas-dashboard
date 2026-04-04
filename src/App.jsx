@@ -20,41 +20,54 @@ export default function App() {
   const [ready, setReady] = useState(false)
   const [accessDenied, setAccessDenied] = useState(false)
 
- useEffect(() => {
-    const safety = setTimeout(() => setReady(true), 3000)
+  useEffect(() => {
+    let settled = false
 
-    // Resolve immediately on refresh using existing session
-    db.auth.getSession().then(async ({ data }) => {
-      if (data.session?.user) {
-        const sessionUser = data.session.user
-        setUser(sessionUser)
-        const s = await getUserSchema()
-        if (!s) { setAccessDenied(true); setSchema(null) }
-        else { setAccessDenied(false); setSchema(s) }
-        clearTimeout(safety)
+    function markReady() {
+      if (!settled) {
+        settled = true
         setReady(true)
       }
-    })
+    }
 
+    // Safety net — never stuck beyond 8 seconds
+    const safety = setTimeout(markReady, 8000)
+
+    async function init() {
+      try {
+        const { data } = await db.auth.getSession()
+        const sessionUser = data.session?.user || null
+        setUser(sessionUser)
+        if (sessionUser) {
+          const s = await getUserSchema()
+          if (!s) { setAccessDenied(true); setSchema(null) }
+          else { setAccessDenied(false); setSchema(s) }
+        }
+      } catch (e) {
+        console.error(e)
+      } finally {
+        clearTimeout(safety)
+        markReady()
+      }
+    }
+
+    init()
+
+    // Listen for future auth changes (login/logout)
     const { data: listener } = db.auth.onAuthStateChange(async (_event, session) => {
+      // Only handle changes AFTER initial load is done
+      if (!settled) return
       const sessionUser = session?.user || null
       setUser(sessionUser)
       if (sessionUser) {
         const s = await getUserSchema()
-        if (!s) {
-          setAccessDenied(true)
-          setSchema(null)
-        } else {
-          setAccessDenied(false)
-          setSchema(s)
-        }
+        if (!s) { setAccessDenied(true); setSchema(null) }
+        else { setAccessDenied(false); setSchema(s) }
       } else {
         setAccessDenied(false)
         setSchema(null)
         clearSchemaCache()
       }
-      clearTimeout(safety)
-      setReady(true)
     })
 
     return () => {
@@ -72,7 +85,6 @@ export default function App() {
 
   document.documentElement.dataset.theme = theme
 
-  // Wait until auth state is resolved
   if (!ready) return (
     <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', color:'var(--text3)', fontSize:'13px' }}>
       Loading...
@@ -100,23 +112,16 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public routes */}
         <Route path="/" element={user && schema ? <Navigate to="/dashboard" /> : <Landing />} />
         <Route path="/login" element={
           user && schema ? <Navigate to="/dashboard" /> :
           <Login onLogin={async (u) => {
             setUser(u)
             const s = await getUserSchema()
-            if (!s) {
-              setAccessDenied(true)
-            } else {
-              setAccessDenied(false)
-              setSchema(s)
-            }
+            if (!s) { setAccessDenied(true) }
+            else { setAccessDenied(false); setSchema(s) }
           }} />
         } />
-
-        {/* Protected routes — only render when user AND schema are both ready */}
         {user && schema && (
           <Route path="/" element={
             <Layout theme={theme} toggleTheme={toggleTheme} user={user} onLogout={() => {
